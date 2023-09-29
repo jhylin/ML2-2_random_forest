@@ -1,0 +1,30 @@
+---
+title: "Random forest"
+subtitle: "Series 2.2 - building model"
+author: Jennifer HY Lin
+date: '2023-9-29'
+draft: true
+categories: 
+    - Machine learning projects
+    - Tree models
+    - Pandas
+    - Scikit-learn
+    - ChEMBL database
+    - Python
+jupyter: python3
+format: html
+bibliography: references.bib
+---
+
+Draft plan:
+
+- Explain what random forest is (bootstrap samples - samples drawn with replacements for each tree built in the ensemble within the training dataset), how there are classifier & regressor (to be used) with differences e.g. class labels (binary) or continuous variables
+- Many other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases
+- ?Likely using same dataset from series 2.1
+- ?possibly one post only
+- Scikit-learn RandomForestRegressor()
+- array X (no. of samples, no. of features) vs. array y (no. of samples or target values)
+- Parameter tuning likely needed
+- Plots
+- Black-box ML (unlike white-box ML for decision tree)
+
