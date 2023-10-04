@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - building model"
 author: Jennifer HY Lin
-date: '2023-9-29'
+date: '2023-10-4'
 draft: true
 categories: 
     - Machine learning projects
@@ -16,9 +16,15 @@ format: html
 bibliography: references.bib
 ---
 
-Draft plan:
+##### **What is a random forest?**
 
-- Explain what random forest is (bootstrap samples - samples drawn with replacements for each tree built in the ensemble within the training dataset), how there are classifier & regressor (to be used) with differences e.g. class labels (binary) or continuous variables
+- Bootstrap samples - samples drawn with replacements for each tree built in the ensemble within the training dataset - introducing randomness into the samples
+- Two main types as classifier & regressor with differences e.g. class labels (binary) or continuous variables
+- L. Breiman's papers in 1998 & 2001
+- Look into random forest regression particularly
+
+
+Draft plan:
 - Many other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases
 - ?Likely using same dataset from series 2.1
 - ?possibly one post only
