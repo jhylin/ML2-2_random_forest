@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - building model"
 author: Jennifer HY Lin
-date: '2023-10-4'
+date: '2023-10-6'
 draft: true
 categories: 
     - Machine learning projects
@@ -17,6 +17,10 @@ bibliography: references.bib
 ---
 
 ##### **What is a random forest?**
+
+So when it was mentioned in the last machine learning (ML) series 2.1 on decision tree that the dataset used to build the tree was small and it was time to use an ensemble method, I thought I needed to explain this further, which would then tie us nicely to this current series 2.2 on random forest. The decision tree model built last time was purely based on one model on its own, which often might not be as accurate as we've hoped for. In the line of mathematical or statistical thinking, we would then think about taking the average of many models to see if the output from this model averaging approach would better reflect the real-life outcome. This approach has been constantly adopted in our daily lives with one of the well-known examples such as using majority votes for final decisions in elections. 
+
+
 
 - Bootstrap samples - samples drawn with replacements for each tree built in the ensemble within the training dataset - introducing randomness into the samples
 - Two main types as classifier & regressor with differences e.g. class labels (binary) or continuous variables
