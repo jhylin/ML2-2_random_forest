@@ -18,11 +18,9 @@ bibliography: references.bib
 
 ##### **What is a random forest?**
 
-So when it was mentioned in the last machine learning (ML) series 2.1 on decision tree that the dataset used to build the tree was small and it was time to use an ensemble method, I thought I needed to explain this further, which would then tie us nicely to this current series 2.2 on random forest. The decision tree model built last time was purely based on one model on its own, which often might not be as accurate as we've hoped for. In the line of mathematical or statistical thinking, we would then think about taking the average of many models to see if the output from this model averaging approach would better reflect the real-life outcome. This approach has been constantly adopted in our daily lives with one of the well-known examples such as using majority votes for final decisions in elections. 
+The decision tree model built last time was purely based on one model on its own, which often might not be as accurate as we've hoped for. If we're thinking along the line mathematically or statistically, we would then think about using the average of many models to see if the output from this approach would better reflect the real-life outcome. This model averaging approach has been constantly adopted in our lives with examples such as using majority votes in elections. This concept was also used in random forest, which as the name suggested, was composed of many tree models e.g. decision trees. The "random" part was introduced via using bootstrap samples, where samples were drawn with replacements within the training datasets for each tree built in the ensemble, which subsequently brought randomness in the training sets.
 
 
-
-- Bootstrap samples - samples drawn with replacements for each tree built in the ensemble within the training dataset - introducing randomness into the samples
 - Two main types as classifier & regressor with differences e.g. class labels (binary) or continuous variables
 - L. Breiman's papers in 1998 & 2001
 - Look into random forest regression particularly
