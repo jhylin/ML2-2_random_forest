@@ -20,12 +20,29 @@ bibliography: references.bib
 
 The decision tree model built last time was purely based on one model on its own, which often might not be as accurate as we've hoped for. If we're thinking along the line mathematically or statistically to improve the model, we would then think about using the average of multiple models [@breiman1998] to see if this output would better reflect the real-life scenario. This model averaging approach was in fact constantly used in our lives with an example such as using majority votes in elections or decision-making processes.
 
-This concept was also used in random forest [@breiman2001], which as the name suggested, was composed of many tree models (decision trees), forming a forest. The "random" part was introduced by two ways. The first one was via using bootstrap samples, where samples were drawn with replacements within the training datasets for each tree built in the ensemble. While bootstrap sampling was happening, randomness was also induced at the same time into the training sets. The second way randomness was introduced was by using a random subset of features for splitting at the nodes, or a full set of features could also be used instead - the main goal was to achieve best splits at each node.
+This concept was also used in random forest [@breiman2001], which as the name suggested, was composed of many tree models (decision trees), forming a forest. To focus on each tree model in the forest, each tree model would be making its own model prediction. By having multiple predicitions since we have multiple trees, the average obtained from these predictions would produce one single result in the end. The advantage of this was that it improved the accuracy of the prediction and also minimised the problem of overfitting the model if it was purely based on one model only ([section 1.11.2.1. Random Forests from *scikit-learn*](https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles) might help to explain this further).
+
+The "random" part of the randome forest was introduced in two ways. The first one was via using bootstrap samples, which was also known as bagging or bootstrap aggregating [@bruce2020], where samples were drawn with replacements within the training datasets for each tree built in the ensemble (the perturb-and-combine technique [@breiman1998]). While bootstrap sampling was happening, randomness was also incorporated at the same time into the training sets. The second way randomness was introduced was by using a random subset of features for splitting at the nodes, or a full set of features could also be used instead - the main goal was to achieve best splits at each node.
+
+*scikit-learn* had two main types of random forest methods - [ensemble.RandomForestClassifier()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier) and [ensemble.RandomForestRegressor()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor). Wwhen to use which method would depend on the dataset used. The easiest thing to do was to decide whether the data to be used had class labels (or binary types e.g. non-continuous variables such as yes or no) or continuous variables, which in this case, if I were to continue using the dataset from the previous series, it would be a continuous variable or feature, pKi, the inhibitory constant. There was actually another method available in *scikit-learn* for random forest algorithm - ensemble.RandomTreesEmbedding().
+
+<br>
+
+##### **Random forest regressor in *scikit-learn***
+
+*to be continued*
 
 
+<br>
 
--   L. Breiman's papers in 1998 & 2001
--   Look into random forest regression particularly
--   Two main types as classifier & regressor with differences e.g. class labels (binary) or continuous variables
+*Draft plans*: 
 
-Draft plan: - Many other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases - ?Likely using same dataset from series 2.1 - ?possibly one post only - Scikit-learn RandomForestRegressor() - array X (no. of samples, no. of features) vs. array y (no. of samples or target values) - Parameter tuning likely needed - Plots - Black-box ML (unlike white-box ML for decision tree)
+- Many other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases 
+
+- Scikit-learn RandomForestRegressor() 
+
+- array X (no. of samples, no. of features) vs. array y (no. of samples or target values) 
+
+- Parameter tuning likely needed 
+
+- Plots - Black-box ML (unlike white-box ML for decision tree)
