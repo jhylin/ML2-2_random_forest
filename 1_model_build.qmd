@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - building model"
 author: Jennifer HY Lin
-date: '2023-10-11'
+date: '2023-10-12'
 draft: true
 categories: 
     - Machine learning projects
@@ -24,13 +24,15 @@ This concept was also used in random forest [@breiman2001], which as the name su
 
 The "random" part of the randome forest was introduced in two ways. The first one was via using bootstrap samples, which was also known as bagging or bootstrap aggregating [@bruce2020], where samples were drawn with replacements within the training datasets for each tree built in the ensemble (the perturb-and-combine technique [@breiman1998]). While bootstrap sampling was happening, randomness was also incorporated at the same time into the training sets. The second way randomness was introduced was by using a random subset of features for splitting at the nodes, or a full set of features could also be used instead. The main goal was to achieve best splits at each node.
 
-*scikit-learn* had two main types of random forest methods - [ensemble.RandomForestClassifier()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier) and [ensemble.RandomForestRegressor()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor). When to use which method would depend on the dataset used. The easiest thing to do was to decide whether the data to be used had class labels (or binary types e.g. non-continuous variables such as yes or no) or continuous variables, which in this case, if I were to continue using the dataset from the previous series, it would be a continuous variable or feature, pKi, the inhibitory constant. There was actually a third method available in *scikit-learn* for random forest algorithm - ensemble.RandomTreesEmbedding() - under section for "Totally Random Trees Embedding" - likely not going to be used.
+*Scikit-learn* had two main types of random forest methods - [ensemble.RandomForestClassifier()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier) and [ensemble.RandomForestRegressor()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor). When to use which method would depend on the dataset used. The easiest thing to do was to decide whether the data to be used had class labels (or binary types e.g. non-continuous variables such as yes or no) or continuous variables, which in this case, if I were to continue using the dataset from the previous series, it would be a continuous variable or feature, pKi, the inhibition constant. There was also an alternative random forest method available in *scikit-learn*, which was ensemble.RandomTreesEmbedding(). The biggest difference of this method was that it was an unsupervised method via data transformations (for details please refer to the section, "Totally Random Trees Embedding" in [*scikit-learn*](https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles)) - this was not going to be used in this post, but I thought to mention it as it might be useful in some other cases.
 
 <br>
 
 ##### **Random forest regressor in *scikit-learn***
 
 *to be continued*
+
+?using RandomForestRegressor() or ExtraTreesRegressor()
 
 
 <br>
