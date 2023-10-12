@@ -28,25 +28,27 @@ The "random" part of the random forest was introduced in two ways. The first one
 
 ##### **Random forest in *scikit-learn***
 
-*Scikit-learn* had two main types of random forest methods - [ensemble.RandomForestClassifier()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier) and [ensemble.RandomForestRegressor()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor). When to use which method would depend on the target values. The easiest thing to do was to decide whether the target variables had class labels (binary types or non-continuous variables e.g. yes or no) or continuous variables, which in this case, if I were to continue using the same dataset from last series of blog posts, it would be a continuous variable or feature, pKi, the inhibition constant. There was also an alternative random forest method in *scikit-learn*, which was ensemble.RandomTreesEmbedding(). The biggest difference for this method was that it was an unsupervised method that used data transformations (details can be accessed from [section 1.11.2.6. on "Totally Random Trees Embedding" in *scikit-learn*](https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles)). I have not planned on using this unsupervised method in this post, but thought to mention it as it might be useful for others in other different ML scenarios.
+*Scikit-learn* had two main types of random forest methods - [ensemble.RandomForestClassifier()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier) and [ensemble.RandomForestRegressor()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor). When to use which method would depend on the target values. The easiest thing to do was to decide whether the target variables had class labels (binary types or non-continuous variables e.g. yes or no) or continuous variables, which in this case, if I were to continue using the same dataset from last series of blog posts, it would be a continuous variable or feature, pKi, the inhibition constant. 
+
+There were also two alternative random forest methods in *scikit-learn*, which were ensemble.RandomTreesEmbedding() and ensemble.ExtraTreesClassifier() or ensemble.ExtraTreesRegressor(). The difference for RandomTreesEmbedding() was that it was an unsupervised method that used data transformations (details can be accessed from [section 1.11.2.6. on "Totally Random Trees Embedding" in *scikit-learn*](https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles)). I have not planned on using this unsupervised method in this post, but thought to mention it as it might be useful for others in other different ML scenarios. On the other side, there was also an option to use ExtraTreesClassifier() or ExtraTreesRegressor() to generate extremely randomised trees that would go for another level up in randomness. The main difference for this type of random forest was that the while there was already a random subset of feature selection used (with an intention to select the most discerning features), more randomness were added by using purely randomly generated splitting rules for picking features at the nodes.
 
 <br>
 
-##### **Random forest regressor in *scikit-learn***
+##### **Building a random forest regressor model***
 
 *to be continued - likely code section*
 
-using RandomForestRegressor() or ExtraTreesRegressor() or both!
+- using RandomForestRegressor()
 
 
 <br>
 
 *Draft plans*: 
 
-- Other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases 
-
 - array X (no. of samples, no. of features) vs. array y (no. of samples or target values) 
 
 - Hyperparameter tuning needed 
 
 - Plots - Black-box ML (unlike white-box ML for decision tree)
+
+- Other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases 
