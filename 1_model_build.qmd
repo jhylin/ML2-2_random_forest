@@ -60,6 +60,8 @@ data.head()
 
 Setting up X and y variables.
 
+Array X (no. of samples, no. of features) vs. array y (no. of samples or target values) 
+
 ```{python}
 # X variables (molecular features)
 
@@ -70,11 +72,13 @@ Setting up X and y variables.
 
 - using RandomForestRegressor()
 
-- array X (no. of samples, no. of features) vs. array y (no. of samples or target values) 
+
 
 <br>
 
 *Draft plans*: 
+
+- Feature importance
 
 - Hyperparameter tuning needed 
 
