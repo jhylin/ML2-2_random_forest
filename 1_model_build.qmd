@@ -36,11 +36,37 @@ There were also two alternative random forest methods in *scikit-learn*, which w
 
 ##### **Building a random forest regressor model***
 
-*to be continued - likely code section*
+Importing all the required libraries.
 
-- import libraries (add scikit-learn version)
+```{python}
+import pandas as pd
+import sklearn
+from sklearn.ensemble import RandomForestRegressor
+```
 
-- import dataset
+Showing the version of *scikit-learn* used (I seemed to have forgotten to include this last time).
+
+```{python}
+print(sklearn.__version__)
+```
+
+Importing dataset that was preprocessed from last time.
+
+```{python}
+data = pd.read_csv("ache_2d_chembl.csv")
+data.drop(columns = ["Unnamed: 0"], inplace=True)
+data.head()
+```
+
+Setting up X and y variables.
+
+```{python}
+# X variables (molecular features)
+
+
+# y variable (target outcome - pKi)
+
+```
 
 - using RandomForestRegressor()
 
