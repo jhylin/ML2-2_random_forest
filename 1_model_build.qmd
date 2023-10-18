@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - building model"
 author: Jennifer HY Lin
-date: '2023-10-13'
+date: '2023-10-19'
 draft: true
 categories: 
     - Machine learning projects
@@ -34,7 +34,7 @@ There were also two alternative random forest methods in *scikit-learn*, which w
 
 <br>
 
-##### **Building a random forest regressor model***
+##### **Building a random forest regressor model**
 
 Importing all the required libraries.
 
@@ -51,7 +51,7 @@ Importing dataset that was preprocessed from last time.
 ```{python}
 data = pd.read_csv("ache_2d_chembl.csv")
 data.drop(columns = ["Unnamed: 0"], inplace=True)
-#Preparing data for compounds with max phase as "null"
+# Preparing data for compounds with max phase as "null"
 # Convert max phase with "NaN" to "null"
 data["max_phase"].fillna("null", inplace=True)
 data.head()
@@ -135,14 +135,9 @@ print(rfreg.predict(X_mp_test))
 
 ##### **Visualising results**
 
-
-<br>
-
-*Draft plans*: 
-
 - Feature importance
 
-- Hyperparameter tuning needed 
+- Hyperparameter tuning
 
 - Plots - Black-box ML (unlike white-box ML for decision tree)
 
