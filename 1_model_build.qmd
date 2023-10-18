@@ -42,11 +42,7 @@ Importing all the required libraries.
 import pandas as pd
 import sklearn
 from sklearn.ensemble import RandomForestRegressor
-```
-
-Showing the version of *scikit-learn* used (I seemed to have forgotten to include this last time).
-
-```{python}
+# Showing version of *scikit-learn* used (seemed to have forgotten to include this last time)
 print(sklearn.__version__)
 ```
 
@@ -60,17 +56,65 @@ data.head()
 
 Setting up X and y variables.
 
-Array X (no. of samples, no. of features) vs. array y (no. of samples or target values) 
+Array X (no. of samples, no. of features) - keeping it the same as how it was in the decision tree series.
 
 ```{python}
-# X variables (molecular features)
+# X variables (molecular features)---
+# Selecting all max phase 4 compounds
+data_mp4 = data[data["max_phase"] == 4]
+data_mp4.head()
 
+X_mp4_df = data_mp4[['mw', 'fsp3', 'n_lipinski_hba', 'n_lipinski_hbd', 'n_rings', 'n_hetero_atoms', 'n_heavy_atoms', 'n_rotatable_bonds', 'n_radical_electrons', 'tpsa', 'qed', 'clogp', 'sas', 'n_aliphatic_carbocycles', 'n_aliphatic_heterocyles', 'n_aliphatic_rings', 'n_aromatic_carbocycles', 'n_aromatic_heterocyles', 'n_aromatic_rings', 'n_saturated_carbocycles', 'n_saturated_heterocyles', 'n_saturated_rings']]
 
-# y variable (target outcome - pKi)
-
+print(X_mp4_df.shape)
+X_mp4_df.head()
 ```
 
-- using RandomForestRegressor()
+```{python}
+# Convert data_mp4_df to numpy array
+X_mp4 = X_mp4_df.to_numpy()
+X_mp4
+```
+
+Array y (no. of samples or target values) - also keeping this the same as the one from the decision tree series.
+
+```{python}
+# y variable (target outcome - pKi)
+y_mp4_df = data_mp4["pKi"]
+y_mp4_df
+```
+
+```{python}
+# Convert y_mp4_df to numpy array
+y_mp4 = y_mp4_df.to_numpy()
+y_mp4
+```
+
+Followed by fitting RandomForestRegressor() on these X and y variables.
+
+```{python}
+rfreg = RandomForestRegressor(max_depth=3, random_state=1)
+rfreg.fit(X_mp4, y_mp4)
+```
+
+Preparing data for compounds with max phase as "null".
+
+```{python}
+# Convert max phase with "NaN" to "null"
+```
+
+```{python}
+# Compounds with max phase as "null"
+data_mp_null = data[data["max_phase"] == "null"]
+print(data_mp_null.shape)
+data_mp_null.head() 
+```
+
+```{python}
+# Trial prediction
+print(rfreg.predict())
+
+```
 
 
 
