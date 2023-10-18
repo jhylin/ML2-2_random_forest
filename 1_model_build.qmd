@@ -51,8 +51,15 @@ Importing dataset that was preprocessed from last time.
 ```{python}
 data = pd.read_csv("ache_2d_chembl.csv")
 data.drop(columns = ["Unnamed: 0"], inplace=True)
+#Preparing data for compounds with max phase as "null"
+# Convert max phase with "NaN" to "null"
+data["max_phase"].fillna("null", inplace=True)
 data.head()
 ```
+
+<br>
+
+###### **Preparing training data**
 
 Setting up X and y variables.
 
@@ -97,11 +104,9 @@ rfreg = RandomForestRegressor(max_depth=3, random_state=1)
 rfreg.fit(X_mp4, y_mp4)
 ```
 
-Preparing data for compounds with max phase as "null".
+<br>
 
-```{python}
-# Convert max phase with "NaN" to "null"
-```
+###### **Preparing testing data**
 
 ```{python}
 # Compounds with max phase as "null"
@@ -111,11 +116,24 @@ data_mp_null.head()
 ```
 
 ```{python}
-# Trial prediction
-print(rfreg.predict())
+# Set up the X test variables
+X_mp_test_df = data_mp_null[['mw', 'fsp3', 'n_lipinski_hba', 'n_lipinski_hbd', 'n_rings', 'n_hetero_atoms', 'n_heavy_atoms', 'n_rotatable_bonds', 'n_radical_electrons', 'tpsa', 'qed', 'clogp', 'sas', 'n_aliphatic_carbocycles', 'n_aliphatic_heterocyles', 'n_aliphatic_rings', 'n_aromatic_carbocycles', 'n_aromatic_heterocyles', 'n_aromatic_rings', 'n_saturated_carbocycles', 'n_saturated_heterocyles', 'n_saturated_rings']]
 
+# Convert X test variables from df to arrays
+X_mp_test = X_mp_test_df.to_numpy()
+
+X_mp_test
 ```
 
+```{python}
+# Predict pKi values for the compounds with "null" max phase
+# using the training model rfreg 
+print(rfreg.predict(X_mp_test))
+```
+
+<br>
+
+##### **Visualising results**
 
 
 <br>
