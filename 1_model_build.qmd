@@ -20,7 +20,7 @@ bibliography: references.bib
 
 The [decision tree model built last time](https://jhylin.github.io/Data_in_life_blog/posts/16_ML2-1_Decision_tree/3_model_build.html) was purely based on one model on its own, which often might not be as accurate as we've hoped for. If we're thinking along the line mathematically or statistically to improve the model, we would then think about using the average of multiple models [@breiman1998] to see if this output would better reflect the real-life scenario. This model averaging approach was in fact constantly used in our lives with a common example such as using majority votes in elections or decision-making processes.
 
-The same model averaging concept was also used in random forest [@breiman2001], which as the name suggested, was composed of many decision tree models forming a forest. To focus on each tree in the forest, each tree model would be making its own model prediction. By having multiple predicitions since we have multiple trees, the average obtained from these predictions would produce one single result in the end. The advantage of this was that it improved the accuracy of the prediction by reducing variances, and also minimised the problem of overfitting the model if it was purely based on one model only (section 1.11.2.1. Random Forests from [*scikit-learn*](https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles) might help to explain this further).
+The same model averaging concept was also used in random forest [@breiman2001], which as the name suggested, was composed of many decision tree models forming a forest. To focus on each tree in the forest, each tree model would be making its own model prediction. By having multiple predictions since we have multiple trees, the average obtained from these predictions would produce one single result in the end. The advantage of this was that it improved the accuracy of the prediction by reducing variances, and also minimised the problem of overfitting the model if it was purely based on one model only (section 1.11.2.1. Random Forests from [*scikit-learn*](https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles) might help to explain this further).
 
 The "random" part of the random forest was introduced in two ways. The first one was via using bootstrap samples, which was also known as bagging or bootstrap aggregating [@bruce2020], where samples were drawn with replacements within the training datasets for each tree built in the ensemble (the perturb-and-combine technique [@breiman1998]). While bootstrap sampling was happening, randomness was also incorporated at the same time into the training sets. The second way randomness was introduced was by using a random subset of features for splitting at the nodes, or a full set of features could also be used instead. The main goal was to achieve best splits at each node.
 
@@ -28,13 +28,13 @@ The "random" part of the random forest was introduced in two ways. The first one
 
 ##### **Random forest in *scikit-learn***
 
-*Scikit-learn* had two main types of random forest methods - [ensemble.RandomForestClassifier()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier) and [ensemble.RandomForestRegressor()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor). When to use which method would depend on the target values. The easiest thing to do was to decide whether the target variables had class labels (binary types or non-continuous variables e.g. yes or no) or continuous variables, which in this case, if I were to continue using the same dataset from last series of blog posts, it would be a continuous variable or feature, pKi, the inhibition constant. 
+*Scikit-learn* had two main types of random forest classes - [ensemble.RandomForestClassifier()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier) and [ensemble.RandomForestRegressor()](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor). When to use which method would depend on the target values. The easiest thing to do was to decide whether the target variables had class labels (binary types or non-continuous variables e.g. yes or no) or continuous variables, which in this case, if I were to continue using the same dataset from last series of blog posts, it would be a continuous variable or feature, pKi, the inhibition constant. 
 
 There were also two alternative random forest methods in *scikit-learn*, which were ensemble.RandomTreesEmbedding() and ensemble.ExtraTreesClassifier() or ensemble.ExtraTreesRegressor(). The difference for RandomTreesEmbedding() was that it was an unsupervised method that used data transformations (details can be accessed from section 1.11.2.6. on "Totally Random Trees Embedding" in [*scikit-learn*](https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles)). I have not planned on using this unsupervised method in this post, but thought to mention it as it might be useful for others in other different ML scenarios. On the other side, there was also an option to use ExtraTreesClassifier() or ExtraTreesRegressor() to generate extremely randomised trees that would go for another level up in randomness (more deatils in section 1.11.2.2. on Extremely Randomized Trees from [*scikit-learn*](https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles)). The main difference for this type of random forest was that the while there was already a random subset of feature selection used (with an intention to select the most discerning features), more randomness were added by using purely randomly generated splitting rules for picking features at the nodes.
 
 <br>
 
-##### **Building a random forest regressor model**
+##### **Building a random forest regressor model using *scikit-learn***
 
 Importing all the required libraries.
 
@@ -125,6 +125,10 @@ X_mp_test = X_mp_test_df.to_numpy()
 X_mp_test
 ```
 
+<br>
+
+###### **Using trained model for prediction on testing data**
+
 ```{python}
 # Predict pKi values for the compounds with "null" max phase
 # using the training model rfreg 
@@ -133,11 +137,17 @@ print(rfreg.predict(X_mp_test))
 
 <br>
 
-##### **Visualising results**
+##### **Model evaluation**
 
-- Feature importance
+* Cross validations
 
-- Hyperparameter tuning
+* Hyperparameter tuning 
+- number of samples (max_samples) 
+- number of features (max_features) 
+- number of trees (n_estimators) 
+- tree depths (max_depth)
+
+* Feature importance
 
 - Plots - Black-box ML (unlike white-box ML for decision tree)
 
