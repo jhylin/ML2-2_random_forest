@@ -22,7 +22,7 @@ The [decision tree model built last time](https://jhylin.github.io/Data_in_life_
 
 The same model averaging concept was also used in random forest [@breiman2001], which as the name suggested, was composed of many decision tree models forming a forest. To focus on each tree in the forest, each tree model would be making its own model prediction. By having multiple predictions since we have multiple trees, the average obtained from these predictions would produce one single result in the end. The advantage of this was that it improved the accuracy of the prediction by reducing variances, and also minimised the problem of overfitting the model if it was purely based on one model only (section 1.11.2.1. Random Forests from [*scikit-learn*](https://scikit-learn.org/stable/modules/ensemble.html#random-forests-and-other-randomized-tree-ensembles) might help to explain this further).
 
-The "random" part of the random forest was introduced in two ways. The first one was via using bootstrap samples, which was also known as bagging or bootstrap aggregating [@bruce2020], where samples were drawn with replacements within the training datasets for each tree built in the ensemble (the perturb-and-combine technique [@breiman1998]). While bootstrap sampling was happening, randomness was also incorporated at the same time into the training sets. The second way randomness was introduced was by using a random subset of features for splitting at the nodes, or a full set of features could also be used instead. The main goal was to achieve best splits at each node.
+The "random" part of the random forest was introduced in two ways. The first one was via using bootstrap samples, which was also known as bagging or bootstrap aggregating [@bruce2020], where samples were drawn with replacements within the training datasets for each tree built in the ensemble (the perturb-and-combine technique [@breiman1998]). While bootstrap sampling was happening, randomness was also incorporated at the same time into the training sets. The second way randomness was introduced was by using a random subset of features for splitting at the nodes, or a full set of features could also be used instead (although this was generally not recommended). The main goal was to achieve best splits at each node.
 
 <br>
 
@@ -40,6 +40,7 @@ Importing all the required libraries.
 
 ```{python}
 import pandas as pd
+import seaborn as sns
 import sklearn
 from sklearn.ensemble import RandomForestRegressor
 # Showing version of *scikit-learn* used (seemed to have forgotten to include this last time)
@@ -137,17 +138,42 @@ print(rfreg.predict(X_mp_test))
 
 <br>
 
+##### ** Feature importance**
+
+###### **feature_importances_ attribute from *scikit-learn*
+
+```{python}
+# Compute feature importance on rfreg training model
+feature_imp = rfreg.feature_importances_
+```
+
+```{python}
+feature_imp_df = pd.DataFrame(feature_imp)
+```
+
+```{python}
+feature_imp_df
+```
+
+```{python}
+sns.barplot(rfreg.feature_importances_, X_mp4_df.columns)
+```
+
+```{python}
+from matplotlib import pyplot as plt
+plt.barh(X_mp4_df.columns, rfreg.feature_importances_)
+```
+
+<br>
+
 ##### **Model evaluation**
 
 * Cross validations
-
 * Hyperparameter tuning 
 - number of samples (max_samples) 
 - number of features (max_features) 
 - number of trees (n_estimators) 
 - tree depths (max_depth)
-
-* Feature importance
 
 - Plots - Black-box ML (unlike white-box ML for decision tree)
 
