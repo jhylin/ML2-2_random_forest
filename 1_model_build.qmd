@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - building model"
 author: Jennifer HY Lin
-date: '2023-10-19'
+date: '2023-10-22'
 draft: true
 categories: 
     - Machine learning projects
@@ -130,7 +130,7 @@ X_mp_test
 
 ###### **Using trained model for prediction on testing data**
 
-**Might need to move this after "Feature importances" section**
+***Might need to move this to be after the "Feature importances" section*** ?link to model evaluation
 
 ```{python}
 # Predict pKi values for the compounds with "null" max phase
@@ -140,7 +140,7 @@ print(rfreg.predict(X_mp_test))
 
 <br>
 
-##### ** Feature importances**
+##### **Feature importances**
 
 ###### **feature_importances_ attribute from *scikit-learn***
 
@@ -150,7 +150,12 @@ feature_imp = rfreg.feature_importances_
 ```
 
 ```{python}
-# Convert the feature_imp arrays into dataframe
+# Check what feature_imp looks like
+feature_imp
+```
+
+```{python}
+# Convert the feature_imp array into dataframe
 feature_imp_df = pd.DataFrame(feature_imp)
 #feature_imp_df
 
@@ -169,7 +174,7 @@ feature_df = pd.concat([feature_imp_df, feature_name_df], axis=1)
 # Rename the column for feature importances
 feature_df = feature_df.rename(columns = {0: "feature_importances"})
 
-# Sort the values of feature importances in descending order (high to low)
+# Sort values of feature importances in descending order
 feature_df = feature_df.sort_values("feature_importances", ascending=False)
 ```
 
@@ -178,7 +183,7 @@ feature_df = feature_df.sort_values("feature_importances", ascending=False)
 sns.barplot(feature_df, x = "feature_importances", y = "features")
 ```
 
-Another plotting method via Matplotlib was shown here which was probably a bit more straightforward as less code were used (but without axes named and also un-sorted).
+An alternative quick plot was also shown below via Matplotlib directly - probably a bit more straightforward as less code were used but without axes named and also no sorted values.
 
 ```{python}
 # Matplotlib plot
