@@ -130,6 +130,8 @@ X_mp_test
 
 ###### **Using trained model for prediction on testing data**
 
+**Might need to move this after "Feature importances" section**
+
 ```{python}
 # Predict pKi values for the compounds with "null" max phase
 # using the training model rfreg 
@@ -138,28 +140,48 @@ print(rfreg.predict(X_mp_test))
 
 <br>
 
-##### ** Feature importance**
+##### ** Feature importances**
 
-###### **feature_importances_ attribute from *scikit-learn*
+###### **feature_importances_ attribute from *scikit-learn***
 
 ```{python}
-# Compute feature importance on rfreg training model
+# Compute feature importances on rfreg training model
 feature_imp = rfreg.feature_importances_
 ```
 
 ```{python}
+# Convert the feature_imp arrays into dataframe
 feature_imp_df = pd.DataFrame(feature_imp)
+#feature_imp_df
+
+# Obtain the feature names via column names of the X variable dataframe
+feature = X_mp4_df.columns
+
+# Rename the index as "features"
+feature = feature.rename("features")
+
+# Convert the index to dataframe
+feature_name_df = feature.to_frame(index = False)
+
+# Concatenate feature_imp_df & feature_name_df
+feature_df = pd.concat([feature_imp_df, feature_name_df], axis=1)
+
+# Rename the column for feature importances
+feature_df = feature_df.rename(columns = {0: "feature_importances"})
+
+# Sort the values of feature importances in descending order (high to low)
+feature_df = feature_df.sort_values("feature_importances", ascending=False)
 ```
 
 ```{python}
-feature_imp_df
+# Seaborn bar plot
+sns.barplot(feature_df, x = "feature_importances", y = "features")
 ```
 
-```{python}
-sns.barplot(rfreg.feature_importances_, X_mp4_df.columns)
-```
+Another plotting method via Matplotlib was shown here which was probably a bit more straightforward as less code were used (but without axes named and also un-sorted).
 
 ```{python}
+# Matplotlib plot
 from matplotlib import pyplot as plt
 plt.barh(X_mp4_df.columns, rfreg.feature_importances_)
 ```
@@ -175,6 +197,6 @@ plt.barh(X_mp4_df.columns, rfreg.feature_importances_)
 - number of trees (n_estimators) 
 - tree depths (max_depth)
 
-- Plots - Black-box ML (unlike white-box ML for decision tree)
+* Plots - Black-box ML (unlike white-box ML for decision tree)
 
-- Other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases 
+* Other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases 
