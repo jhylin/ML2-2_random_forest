@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - building model"
 author: Jennifer HY Lin
-date: '2023-10-22'
+date: '2023-10-23'
 draft: true
 categories: 
     - Machine learning projects
@@ -66,12 +66,20 @@ Setting up X and y variables.
 
 Array X (no. of samples, no. of features) - keeping it the same as how it was in the decision tree series.
 
-```{python}
-# X variables (molecular features)---
-# Selecting all max phase 4 compounds
-data_mp4 = data[data["max_phase"] == 4]
-data_mp4.head()
+Note: It's usually a good practice to copy the original data or dataframe for further data manipulations to avoid any unnecessary changes to the original dataset (this was not used in the decision tree posts but since I'm going to use the same set of data again I thought it would be a better idea!)
 
+```{python}
+# X variables (molecular features)
+# Make a copy of the original dataframe first
+# Selecting all max phase 4 compounds
+data_mp4 = data.copy()
+data_mp4 = data_mp4[data_mp4["max_phase"] == 4]
+print(data_mp4.shape)
+data_mp4.head()
+```
+
+```{python}
+# Select molecular features for X variable
 X_mp4_df = data_mp4[['mw', 'fsp3', 'n_lipinski_hba', 'n_lipinski_hbd', 'n_rings', 'n_hetero_atoms', 'n_heavy_atoms', 'n_rotatable_bonds', 'n_radical_electrons', 'tpsa', 'qed', 'clogp', 'sas', 'n_aliphatic_carbocycles', 'n_aliphatic_heterocyles', 'n_aliphatic_rings', 'n_aromatic_carbocycles', 'n_aromatic_heterocyles', 'n_aromatic_rings', 'n_saturated_carbocycles', 'n_saturated_heterocyles', 'n_saturated_rings']]
 
 print(X_mp4_df.shape)
@@ -111,13 +119,14 @@ rfreg.fit(X_mp4, y_mp4)
 
 ```{python}
 # Compounds with max phase as "null"
-data_mp_null = data[data["max_phase"] == "null"]
+data_mp_null = data.copy()
+data_mp_null = data_mp_null[data_mp_null["max_phase"] == "null"]
 print(data_mp_null.shape)
 data_mp_null.head() 
 ```
 
 ```{python}
-# Set up the X test variables
+# Set up the X test variable with the same molecular features
 X_mp_test_df = data_mp_null[['mw', 'fsp3', 'n_lipinski_hba', 'n_lipinski_hbd', 'n_rings', 'n_hetero_atoms', 'n_heavy_atoms', 'n_rotatable_bonds', 'n_radical_electrons', 'tpsa', 'qed', 'clogp', 'sas', 'n_aliphatic_carbocycles', 'n_aliphatic_heterocyles', 'n_aliphatic_rings', 'n_aromatic_carbocycles', 'n_aromatic_heterocyles', 'n_aromatic_rings', 'n_saturated_carbocycles', 'n_saturated_heterocyles', 'n_saturated_rings']]
 
 # Convert X test variables from df to arrays
@@ -159,11 +168,9 @@ feature_imp
 feature_imp_df = pd.DataFrame(feature_imp)
 #feature_imp_df
 
-# Obtain the feature names via column names of the X variable dataframe
-feature = X_mp4_df.columns
-
+# Obtain feature names via column names of the dataframe
 # Rename the index as "features"
-feature = feature.rename("features")
+feature = X_mp4_df.columns.rename("features")
 
 # Convert the index to dataframe
 feature_name_df = feature.to_frame(index = False)
@@ -193,15 +200,48 @@ plt.barh(X_mp4_df.columns, rfreg.feature_importances_)
 
 <br>
 
-##### **Model evaluation**
+##### **Model evaluation/hyperparameter tuning**
 
-* Cross validations
-* Hyperparameter tuning 
+```{python}
+# Import additional ibraries
+from numpy import mean, std
+# RepeatedStratifiedKFold usually for binary or multi-class labels - ref link: https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html#sklearn.model_selection.KFold
+from sklearn.model_selection import cross_val_score, RepeatedKFold
+```
+
+* Cross validations & hyperparameter tuning 
+1. number of trees (n_estimators) 
+
+```{python}
+# ---Evaluate a list of models with different number of trees---
+
+# Use the same dataset as above
+
+# Function to generate a list of models with different no. of trees
+def models():
+    # Create empty dictionary (key, value pairs) for models
+    models = dict()
+    # Test different number of trees to evaluate
+    no_trees = [20, 50, 100, 600, 1000]
+    for n in no_trees:
+        models[str(n)] = RandomForestRegressor(n_estimators=n)
+    return models
+
+
+# Function to evaluate model using cross-validation
+
+
+# Run models with different RepeatedKFold & different no. of tress
+# with results shown as diff. trees with calculated mean cv scores & std
+
+
+```
+
+Potentially may also look at:
 - number of samples (max_samples) 
 - number of features (max_features) 
-- number of trees (n_estimators) 
 - tree depths (max_depth)
 
-* Plots - Black-box ML (unlike white-box ML for decision tree)
+* Plots - Black-box ML e.g. if compariing clogp vs. pKi? (unlike white-box ML for decision tree)
 
 * Other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases 
