@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - building model"
 author: Jennifer HY Lin
-date: '2023-10-23'
+date: '2023-10-25'
 draft: true
 categories: 
     - Machine learning projects
@@ -66,13 +66,13 @@ Setting up X and y variables.
 
 Array X (no. of samples, no. of features) - keeping it the same as how it was in the decision tree series.
 
-Note: It's usually a good practice to copy the original data or dataframe for further data manipulations to avoid any unnecessary changes to the original dataset (this was not used in the decision tree posts but since I'm going to use the same set of data again I thought it would be a better idea!)
+Note: It's usually a good practice to copy the original data or dataframe for further data manipulations to avoid any unnecessary changes to the original dataset (this was not used in the decision tree posts but since I'm going to use the same set of data again I'd better do this here.)
 
 ```{python}
-# X variables (molecular features)
+# X variables (molecular features)---
 # Make a copy of the original dataframe first
-# Selecting all max phase 4 compounds
 data_mp4 = data.copy()
+# Selecting all max phase 4 compounds
 data_mp4 = data_mp4[data_mp4["max_phase"] == 4]
 print(data_mp4.shape)
 data_mp4.head()
@@ -87,7 +87,7 @@ X_mp4_df.head()
 ```
 
 ```{python}
-# Convert data_mp4_df to numpy array
+# Convert X_mp4_df to numpy array
 X_mp4 = X_mp4_df.to_numpy()
 X_mp4
 ```
@@ -109,6 +109,8 @@ y_mp4
 Followed by fitting RandomForestRegressor() on these X and y variables.
 
 ```{python}
+# n_estimators = 100 by default
+# note: if wanting to use whole dataset - switch off "bootstrap" parameter by using "False"
 rfreg = RandomForestRegressor(max_depth=3, random_state=1)
 rfreg.fit(X_mp4, y_mp4)
 ```
@@ -120,13 +122,14 @@ rfreg.fit(X_mp4, y_mp4)
 ```{python}
 # Compounds with max phase as "null"
 data_mp_null = data.copy()
+# Selecting all max phase "null" compounds
 data_mp_null = data_mp_null[data_mp_null["max_phase"] == "null"]
 print(data_mp_null.shape)
 data_mp_null.head() 
 ```
 
 ```{python}
-# Set up the X test variable with the same molecular features
+# Set up X test variable with the same molecular features
 X_mp_test_df = data_mp_null[['mw', 'fsp3', 'n_lipinski_hba', 'n_lipinski_hbd', 'n_rings', 'n_hetero_atoms', 'n_heavy_atoms', 'n_rotatable_bonds', 'n_radical_electrons', 'tpsa', 'qed', 'clogp', 'sas', 'n_aliphatic_carbocycles', 'n_aliphatic_heterocyles', 'n_aliphatic_rings', 'n_aromatic_carbocycles', 'n_aromatic_heterocyles', 'n_aromatic_rings', 'n_saturated_carbocycles', 'n_saturated_heterocyles', 'n_saturated_rings']]
 
 # Convert X test variables from df to arrays
@@ -168,7 +171,7 @@ feature_imp
 feature_imp_df = pd.DataFrame(feature_imp)
 #feature_imp_df
 
-# Obtain feature names via column names of the dataframe
+# Obtain feature names via column names of dataframe
 # Rename the index as "features"
 feature = X_mp4_df.columns.rename("features")
 
@@ -190,7 +193,7 @@ feature_df = feature_df.sort_values("feature_importances", ascending=False)
 sns.barplot(feature_df, x = "feature_importances", y = "features")
 ```
 
-An alternative quick plot was also shown below via Matplotlib directly - probably a bit more straightforward as less code were used but without axes named and also no sorted values.
+An alternative way to plot was via Matplotlib directly (note: Seaborn also uses Matplotlib as well, so the plots are pretty similar). The code below were probably a bit more straightforward but without axes named and values were not sorted.
 
 ```{python}
 # Matplotlib plot
@@ -200,7 +203,7 @@ plt.barh(X_mp4_df.columns, rfreg.feature_importances_)
 
 <br>
 
-##### **Model evaluation/hyperparameter tuning**
+##### **Model performance evaluation/hyperparameter tuning**
 
 ```{python}
 # Import additional ibraries
@@ -215,26 +218,40 @@ from sklearn.model_selection import cross_val_score, RepeatedKFold
 ```{python}
 # ---Evaluate a list of models with different number of trees---
 
-# Use the same dataset as above
+# Use the same training dataset as above - X_mp4, y_mp4
+X = X_mp4
+y = y_mp4
 
 # Function to generate a list of models with different no. of trees
 def models():
     # Create empty dictionary (key, value pairs) for models
     models = dict()
     # Test different number of trees to evaluate
-    no_trees = [20, 50, 100, 600, 1000]
+    no_trees = [50, 100, 250, 500, 1000]
     for n in no_trees:
         models[str(n)] = RandomForestRegressor(n_estimators=n)
     return models
 
 
-# Function to evaluate model using cross-validation
-
+# Function to evaluate a single model using cross-validation
+def evaluate(model, X, y):
+    # Define evaluation process
+    cross_val = RepeatedKFold(n_splits=10, n_repeats=15, random_state=1)
+    # Run evaluation process & collect cv scores
+    # Since estimator/model was based on DecisionTreeRegressor, using r2 metric
+    # n_jobs = -1 meaning using all processors to run jobs in parallel
+    scores = cross_val_score(model, X, y, scoring="r2", cv=cross_val, n_jobs=-1)
+    return scores
 
 # Run models with different RepeatedKFold & different no. of tress
 # with results shown as diff. trees with calculated mean cv scores & std
 
 
+```
+
+```{python}
+#sklearn.metrics.get_scorer_names() - to show all scoring metrics
+# URL link: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 ```
 
 Potentially may also look at:
