@@ -203,7 +203,7 @@ plt.barh(X_mp4_df.columns, rfreg.feature_importances_)
 
 <br>
 
-##### **Model performance evaluation/hyperparameter tuning**
+##### **Model performance evaluation or hyperparameter tuning**
 
 ```{python}
 # Import additional ibraries
@@ -218,11 +218,10 @@ from sklearn.model_selection import cross_val_score, RepeatedKFold
 ```{python}
 # ---Evaluate a list of models with different number of trees---
 
-# Use the same training dataset as above - X_mp4, y_mp4
-X = X_mp4
-y = y_mp4
+# Define dataset by using the same training dataset as above---
+X, y = X_mp4, y_mp4
 
-# Function to generate a list of models with different no. of trees
+# Define function to generate a list of models with different no. of trees---
 def models():
     # Create empty dictionary (key, value pairs) for models
     models = dict()
@@ -233,19 +232,56 @@ def models():
     return models
 
 
-# Function to evaluate a single model using cross-validation
+# Define function to evaluate a single model using cross-validation---
 def evaluate(model, X, y):
     # Define evaluation process
     cross_val = RepeatedKFold(n_splits=10, n_repeats=15, random_state=1)
     # Run evaluation process & collect cv scores
-    # Since estimator/model was based on DecisionTreeRegressor, using r2 metric
+    # Since estimator/model was based on DecisionTreeRegressor, using neg_mean_squared_error metric
     # n_jobs = -1 meaning using all processors to run jobs in parallel
-    scores = cross_val_score(model, X, y, scoring="r2", cv=cross_val, n_jobs=-1)
+    scores = cross_val_score(model, X, y, scoring="neg_mean_squared_error", cv=cross_val, n_jobs=-1)
     return scores
 
+
+# Evaluate results---
 # Run models with different RepeatedKFold & different no. of tress
 # with results shown as diff. trees with calculated mean cv scores & std
 
+# Obtain diff. models with diff. trees via models function
+models = models()
+
+# Create empty lists for results & names
+results, names = list(), list()
+
+# Create a for loop to iterate through the list of diff. models
+for name, model in models.items():
+    # Run the cross validation scores via evaluate function
+    scores = evaluate(model, X, y)
+    # Collect results
+    results.append(scores)
+    # Collect names (different no. of trees)
+    names.append(name)
+    # Show the average mean squared errors and corresponding standard deviations 
+    # for each model with diff. no. of trees
+    print((name, mean(scores), std(scores)))
+```
+
+Best model performance lied in 500 trees with a average mean squared error score of 1.666. The negated version of the same value was due to how the scoring parameter source code was written in scikit-learn, which was written this way to take into account of both *scoring* functions and *loss* functions (please see provided links below). When the number of trees went past 500 and reaching 1000, we could see an increase in the average mean squared error (the value being less negative), meaning the error increased.
+
+* Links to help understanding neg_mean_squared_error:
+
+1. scikit-learn source code - https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/metrics/_scorer.py#L624
+
+2. StackOverflow answer - https://stackoverflow.com/questions/48244219/is-sklearn-metrics-mean-squared-error-the-larger-the-better-negated
+
+```{python}
+# Matplotlib boxplots for each no. of tree model with average mean squared errors shown
+plt.boxplot(results, labels=names, showmeans=True)
+plt.show()
+```
+
+```{python}
+# Try Seaborn version too
 
 ```
 
@@ -255,9 +291,11 @@ def evaluate(model, X, y):
 ```
 
 Potentially may also look at:
-- number of samples (max_samples) 
-- number of features (max_features) 
 - tree depths (max_depth)
+- number of samples (max_samples) 
+- ?number of features (max_features) (can mention using RDKit's version to generate molecular features which would provide 209)
+
+* Try keeping post as short and as succinct as possible!
 
 * Plots - Black-box ML e.g. if compariing clogp vs. pKi? (unlike white-box ML for decision tree)
 
