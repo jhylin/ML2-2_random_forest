@@ -1,6 +1,6 @@
 ---
 title: "Random forest"
-subtitle: "Series 2.2 - building model"
+subtitle: "Series 2.2 - building model, feature importances & model evaluations"
 author: Jennifer HY Lin
 date: '2023-10-25'
 draft: true
@@ -150,6 +150,8 @@ X_mp_test
 print(rfreg.predict(X_mp_test))
 ```
 
+***May need to add a mean squared error for y_mp4 & y_mp_test (= rfreg.predict(X_mp_test))***
+
 <br>
 
 ##### **Feature importances**
@@ -203,7 +205,7 @@ plt.barh(X_mp4_df.columns, rfreg.feature_importances_)
 
 <br>
 
-##### **Model performance evaluation or hyperparameter tuning**
+##### **Hyperparameter tuning**
 
 ```{python}
 # Import additional ibraries
@@ -266,7 +268,7 @@ for name, model in models.items():
     print((name, mean(scores), std(scores)))
 ```
 
-Best model performance lied in 500 trees with a average mean squared error score of 1.666. The negated version of the same value was due to how the scoring parameter source code was written in scikit-learn, which was written this way to take into account of both *scoring* functions and *loss* functions (please see provided links below). When the number of trees went past 500 and reaching 1000, we could see an increase in the average mean squared error (the value being less negative), meaning the error increased.
+Best model performance would be the one with the most negative value for average mean squared error (note: the random forest algorithm was stochastic in nature, so every time it was run, it would provide different results due to random bootstrap sampling, so there wouldn't be a fixed answer). The negated version of the same value was due to how the scoring parameter source code was written in scikit-learn, which was written this way to take into account of both *scoring* functions and *loss* functions (please see provided links below). When the number of trees went past 500 and reaching 1000, we could see an increase in the average mean squared error (the value being less negative), meaning the error increased.
 
 * Links to help understanding neg_mean_squared_error:
 
@@ -292,7 +294,8 @@ plt.show()
 
 Potentially may also look at:
 - tree depths (max_depth)
-- number of samples (max_samples) 
+
+- ?number of samples (max_samples) (probably won't do this as the sample size was already small to start with!)
 - ?number of features (max_features) (can mention using RDKit's version to generate molecular features which would provide 209)
 
 * Try keeping post as short and as succinct as possible!
