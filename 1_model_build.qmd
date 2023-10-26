@@ -106,6 +106,10 @@ y_mp4 = y_mp4_df.to_numpy()
 y_mp4
 ```
 
+<br>
+
+###### **Training model with training dataset** 
+
 Followed by fitting RandomForestRegressor() on these X and y variables.
 
 ```{python}
@@ -159,7 +163,7 @@ y_mp_test = rfreg.predict(X_mp_test)
 rfreg.score(X_mp_test, y_mp_test)
 ```
 
-This reached the best possible R^2 score of 1.0 (!). However, the testing dataset might not be the best since I splitted training and testing data based on max phase... rather than the usual train_test_split(), so the testing data might not be the best candidates to test the model. Ideally, I should look for a completely different set of compounds that were outside of ChEMBL database. Anyway, for demonstration purpose, I'd stick to what I've for now.
+This reached the best possible R^2 score of 1.0 (!). The likely reason could be that I had a really small training dataset (imagining only training on 10 compounds...). The main reason to have such a small training dataset was that that were basically the only 10 compounds I've found with an assigned max phase of 4, which were equivalent to approved prescription drugs with acetylcholinesterase as the main protein drug target.
 
 ***May need to add a mean squared error for y_mp4 & y_mp_test (= rfreg.predict(X_mp_test))***
 
@@ -331,8 +335,8 @@ Potentially may also look at:
 - ?number of samples (max_samples) (probably won't do this as the sample size was already small to start with!)
 - ?number of features (max_features) (can mention using RDKit's version to generate molecular features which would provide 209)
 
-* Try keeping post as short and as succinct as possible!
-
 * Plots - Black-box ML e.g. if comparing clogp vs. pKi? (unlike white-box ML for decision tree) - or can mention that the feature importances section was necessary to shed some lights and remove some layers of the black-box style of random forest by showing which features were making impacts on the predictive models.
 
-* Other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases 
+* Other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases
+
+* Try keeping post as short and as succinct as possible!
