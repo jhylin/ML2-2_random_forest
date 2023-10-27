@@ -146,8 +146,6 @@ X_mp_test
 
 ###### **Using trained model for prediction on testing data**
 
-This step was actually recommended to happen prior to checking out feature importances, as suggested by *scikit-learn* in the [Permutation feature importance section](https://scikit-learn.org/stable/modules/permutation_importance.html#permutation-feature-importance).
-
 ```{python}
 # Predict pKi values for the compounds with "null" max phase
 # using the training model rfreg 
@@ -157,15 +155,23 @@ This step was actually recommended to happen prior to checking out feature impor
 y_mp_test = rfreg.predict(X_mp_test)
 ```
 
-* Prior to using feature importances, need to check accuracy of trained model via the score() method.
+<br>
+
+###### **Accuracy of model**
+
+This step of checking accuracy of the model on both the training and testing data was actually recommended to occur before moving onto the feature importances. A *scikit-learn* explanation for this could be found in the [Permutation feature importance section](https://scikit-learn.org/stable/modules/permutation_importance.html#permutation-feature-importance).
 
 ```{python}
-rfreg.score(X_mp_test, y_mp_test)
+# Training set accuracy
+print(f"Random forest regressor training accuracy: {rfreg.score(X_mp4, y_mp4):.2f}")
+
+# Testing set accuracy
+print(f"Random forest regressor testing accuracy: {rfreg.score(X_mp_test, y_mp_test):.2f}")
 ```
 
-This reached the best possible R^2 score of 1.0 (!). The likely reason could be that I had a really small training dataset (imagining only training on 10 compounds...). The main reason to have such a small training dataset was that that were basically the only 10 compounds I've found with an assigned max phase of 4, which were equivalent to approved prescription drugs with acetylcholinesterase as the main protein drug target.
+So it looked like both the training and testing accuracies for the random forest regressor model (rfreg) were quite high, meaning that the model was able to remember the molecular features well from the training set (the tiny sample of 10 compounds), and the model was able to apply them to the testing set (which should contain about 400s of compounds) as well, in order to make predictions on the target value of pKi. So this has confirmed that the model was indeed making predictions (rather than not making any at all, which meant there might be no point in finding out which features were important in the data, so it was a good checking point during the random forest model building exercise), therefore, we could proceed to the next step of generating some feature importances, which were useful information to fill in the bigger story i.e. which features were pivotal for influencing the pKi values of prescription drugs targeting AChE? 
 
-***May need to add a mean squared error for y_mp4 & y_mp_test (= rfreg.predict(X_mp_test))***
+*?optional - May need to add a mean squared error for y_mp4 & y_mp_test (= rfreg.predict(X_mp_test))*
 
 <br>
 
@@ -185,7 +191,7 @@ feature_imp = rfreg.feature_importances_
 ```
 
 ```{python}
-# Check what feature_imp looks like
+# Check what feature_imp looks like (an array)
 feature_imp
 ```
 
@@ -236,6 +242,21 @@ So here I've tried to use the model-agnostic permutation_importance function.
 
 ```{python}
 from sklearn.inspection import permutation_importance
+
+perm_result = permutation_importance(rfreg, X_mp_test, y_mp_test, n_repeats=10, random_state=1, n_jobs=2)
+```
+
+```{python}
+sorted_perm_result = perm_result.importances_mean.argsort()
+
+# An array
+sorted_perm_result 
+
+# Convert array into df
+perm_result_df = pd.DataFrame(sorted_perm_result)
+perm_result_df
+
+# Write a function to convert array to df leading to plots - for use in feature_importances_ & permutation_importance
 
 
 ```
@@ -325,14 +346,14 @@ plt.show()
 ```
 
 ```{python}
-#sklearn.metrics.get_scorer_names() - to show all scoring metrics
-# URL link: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+# Show all scoring metrics - URL link: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+# sklearn.metrics.get_scorer_names() 
 ```
 
 Potentially may also look at:
 - tree depths (max_depth)
 
-- ?number of samples (max_samples) (probably won't do this as the sample size was already small to start with!)
+- ?number of samples (max_samples) (probably won't do this as the training sample size was already very small to start with!)
 - ?number of features (max_features) (can mention using RDKit's version to generate molecular features which would provide 209)
 
 * Plots - Black-box ML e.g. if comparing clogp vs. pKi? (unlike white-box ML for decision tree) - or can mention that the feature importances section was necessary to shed some lights and remove some layers of the black-box style of random forest by showing which features were making impacts on the predictive models.
