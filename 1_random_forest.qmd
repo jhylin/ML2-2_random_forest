@@ -60,7 +60,13 @@ data.head()
 
 <br>
 
-###### **Preparing training data**
+##### **Training/testing splits**
+
+I tried using two different approaches in the training and testing data splits, where one was based on the commonly used random data splits, train_test_splits(), and the other one was the max phase splits, which was based on what I did in the decision tree series by splitting compounds based on max phase assignment of null or 4.
+
+<br>
+
+###### **Preparing max phase-splitted training data**
 
 Setting up X and y variables.
 
@@ -108,7 +114,7 @@ y_mp4
 
 <br>
 
-###### **Training model with training dataset** 
+###### **Training model with max phase-splitted training dataset** 
 
 Followed by fitting RandomForestRegressor() on these X and y variables.
 
@@ -121,7 +127,7 @@ rfreg.fit(X_mp4, y_mp4)
 
 <br>
 
-###### **Preparing testing data**
+###### **Preparing max phase-splitted testing data**
 
 ```{python}
 # Compounds with max phase as "null"
@@ -144,7 +150,7 @@ X_mp_test
 
 <br>
 
-###### **Using trained model for prediction on testing data**
+###### **Using trained model for prediction on max phase-splitted testing data**
 
 ```{python}
 # Predict pKi values for the compounds with "null" max phase
@@ -157,7 +163,7 @@ y_mp_test = rfreg.predict(X_mp_test)
 
 <br>
 
-###### **Accuracy of model**
+###### **Accuracy of model based on max phase-splitted data**
 
 This step of checking accuracy of the model on both the training and testing data was actually recommended to occur before moving onto the feature importances. A *scikit-learn* explanation for this could be found in the [Permutation feature importance section](https://scikit-learn.org/stable/modules/permutation_importance.html#permutation-feature-importance).
 
@@ -172,6 +178,14 @@ print(f"Random forest regressor testing accuracy: {rfreg.score(X_mp_test, y_mp_t
 So it looked like both the training and testing accuracies for the random forest regressor model (rfreg) were quite high, meaning that the model was able to remember the molecular features well from the training set (the tiny sample of 10 compounds), and the model was able to apply them to the testing set (which should contain about 400s of compounds) as well, in order to make predictions on the target value of pKi. So this has confirmed that the model was indeed making predictions (rather than not making any at all, which meant there might be no point in finding out which features were important in the data, so it was a good checking point during the random forest model building exercise), therefore, we could proceed to the next step of generating some feature importances, which were useful information to fill in the bigger story i.e. which features were pivotal for influencing the pKi values of prescription drugs targeting AChE? 
 
 *?optional - May need to add a mean squared error for y_mp4 & y_mp_test (= rfreg.predict(X_mp_test))*
+
+<br>
+
+###### **Preparing randomly splitted training data**
+
+```{python}
+
+```
 
 <br>
 
