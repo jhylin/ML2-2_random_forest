@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - model building, feature importances & model evaluations"
 author: Jennifer HY Lin
-date: '2023-10-30'
+date: '2023-11-2'
 draft: true
 categories: 
     - Machine learning projects
@@ -43,7 +43,7 @@ import pandas as pd
 import seaborn as sns
 import sklearn
 from sklearn.ensemble import RandomForestRegressor
-# Showing version of *scikit-learn* used (including it this time as I think I might have forgotten last time)
+# Showing version of *scikit-learn* used
 print(sklearn.__version__)
 ```
 
@@ -62,7 +62,9 @@ data.head()
 
 ##### **Training/testing splits**
 
-###### **Preparing training data**
+Two approaches used.
+
+###### **Preparing training data using max phase split**
 
 Setting up X variable first via the dataframe, and converting it into a NumPy array X (no. of samples, no. of features), keeping it the same as how it was in the decision tree series.
 
@@ -86,15 +88,6 @@ print(X_mp4_df.shape)
 X_mp4_df.head()
 ```
 
-I didn't really pay a lot of attentions when I was doing data splits in the last series on decision tree, as my main focus was on building a single tree in order to fully understand and see what could be derived from just one tree. Now, when I reached this series on random forest, I realised I forgot to mention in the last series that data splitting was actually very crucial and impactful on model performance and also outcome predictions. It could also become quite complicated as more approaches were available to split the data, and the way the data was splitted could produce different outcomes. After I've splitted the same dataset based on compounds' max phase assignments and also fitted the training data on the random forest regressor, I went back and had another look, then noticed that, the training and testing data were very imbalanced, and perhaps I should do something to the data before fitting them onto the estimator. 
-
-So I started a simple online search, and after several quick online and also text book reads, I've decided that the likely plan for this series on random forest was to stick with max phase splits for now, since this was a regression problem (as I was trying to predict a continuous variable, inhibition constant, pKi, and not a binary label or outcome). Based on current common ML concensus (Google, StackOverflow, ML mastery examples), imbalanced dataset was more applicable to classification tasks (e.g. binary labels or multi-class labels), rather than regression problems. However, with more current ML researches looking into the issue of imbalanced datasets, there were actually findings using other strategies such as deep imbalanced regression for regression problems too (cite bookmarked paper, there might be more studies in this area as well).
-
-* Try ImbalancedLearningRegression (https://imbalancedlearningregression.readthedocs.io/en/latest/intro.html)
-- try random over-sampling first (potentially other variations of shorter posts later on using SMOTE or Introduction of Gaussian Noise to see if leading to different results)
-
-SMOTE -> SMOTER -> SMOGN -> ImbalancedLearningRegression
-
 ```{python}
 # Convert X_mp4_df to numpy array
 X_mp4 = X_mp4_df.to_numpy()
@@ -117,7 +110,7 @@ y_mp4
 
 <br>
 
-###### **Training model with the training dataset** 
+###### **Training model with the training dataset using max phase split only** 
 
 Followed by fitting RandomForestRegressor() on these X and y variables.
 
@@ -130,7 +123,7 @@ rfreg.fit(X_mp4, y_mp4)
 
 <br>
 
-###### **Preparing testing data**
+###### **Preparing testing data using max phase split only**
 
 ```{python}
 # Compounds with max phase as "null"
@@ -153,7 +146,101 @@ X_mp_test
 
 <br>
 
+##### **Training/testing splits using ImbalancedLearningRegression and max phase splits**
+
+I didn't really pay a lot of attentions when I was doing data splits in the last series on decision tree, as my main focus was on building a single tree in order to fully understand and see what could be derived from just one tree. Now, when I reached this series on random forest, I realised I forgot to mention in the last series that data splitting was actually very crucial and impactful on model performance and also outcome predictions. It could also become quite complicated as more approaches were available to split the data, and the way the data was splitted could produce different outcomes. After I've splitted the same dataset based on compounds' max phase assignments and also fitted the training data on the random forest regressor, I went back and had another look, then noticed that, the training and testing data were very imbalanced, and perhaps I should do something to the data before fitting them onto the estimator. 
+
+So I started a simple online search, and after several quick online and also text book reads, I've decided that the likely plan for this series on random forest was to stick with max phase splits for now, since this was a regression problem (as I was trying to predict a continuous variable, inhibition constant, pKi, and not a binary label or outcome). Based on current common ML concensus (Google, StackOverflow, ML mastery examples), imbalanced dataset was more applicable to classification tasks (e.g. binary labels or multi-class labels), rather than regression problems. However, with more current ML researches looking into the issue of imbalanced datasets, there were actually findings using other strategies such as deep imbalanced regression for regression problems too (cite bookmarked paper, there might be more studies in this area as well).
+
+* Try ImbalancedLearningRegression (https://imbalancedlearningregression.readthedocs.io/en/latest/intro.html)
+- try random over-sampling first (potentially other variations of shorter posts later on using SMOTE or Introduction of Gaussian Noise to see if leading to different results)
+
+SMOTE -> SMOTER -> SMOGN -> ImbalancedLearningRegression
+
+```{python}
+# Original dataset
+print(data.shape)
+data.head()
+```
+
+```{python}
+#data["max_phase"].replace({"null": 0}, inplace=True)
+```
+
+```{python}
+data.head()
+```
+
+```{python}
+# Trial using ImbalancedLearningRegression
+import ImbalancedLearningRegression as iblr
+
+data = data.copy()
+
+# Using random over-sampling on the original dataset (pre-max phase split)
+# data_ro = iblr.ro(data = data, y = "pKi", samp_method="extreme")
+# print(data_ro.shape)
+
+# Using random under-sampling
+# data_ru = iblr.random_under(data = data, y = "pKi")
+# print(data_ru.shape)
+
+#Gaussian noise
+data_ro = iblr.gn(data = data, y = "pKi", pert = 1)
+print(data_ro.shape)
+```
+
+```{python}
+#data_ro.head()
+
+#data_ru.head()
+```
+
+```{python}
+data_ro_mp4 = data_ro[data_ro["max_phase"] == 4]
+data_ro_mp4
+print(data_ro_mp4.shape)
+```
+
+```{python}
+# under-sampling - nil max phase 4 compounds!
+# data_ru_mp4 = data_ru[data_ru["max_phase"] == 4]
+# data_ru_mp4
+# print(data_ru_mp4.shape)
+```
+
+```{python}
+data_ro_mp_null = data_ro[data_ro["max_phase"] == "null"]
+data_ro_mp_null
+print(data_ro_mp_null.shape)
+```
+
+```{python}
+# under-sampling
+# data_ru_mp_null = data_ru[data_ru["max_phase"] == "null"]
+# data_ru_mp_null
+# print(data_ru_mp_null.shape)
+```
+
+```{python}
+import matplotlib.pyplot as plt
+
+## plot y distribution 
+# seaborn.kdeplot(housing['SalePrice'], label = "Original")
+# seaborn.kdeplot(housing_gn['SalePrice'], label = "Modified")
+# plt.legend(labels=["Original","Modified"])
+
+
+sns.kdeplot(data["pKi"], label = "Original")
+sns.kdeplot(data_ro["pKi"], label = "Modified")
+plt.legend(labels = ["Original", "Modified"])
+```
+
+<br>
+
 ###### **Using trained model for prediction on testing data**
+
+rfreg trained model used max phase splits only.
 
 ```{python}
 # Predict pKi values for the compounds with "null" max phase
