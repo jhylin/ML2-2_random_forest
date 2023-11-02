@@ -571,6 +571,8 @@ plt.show()
 
 - nodes
 
+* Might not cover SHAP value for feature importances (due to post length!), but mention this was also useful as it was a model-agnostic method that could be applied in many scenarios
+
 * Plots - Black-box ML e.g. if comparing clogp vs. pKi? (unlike white-box ML for decision tree) - or can mention that the feature importances section was necessary to shed some lights and remove some layers of the black-box style of random forest by showing which features were making impacts on the predictive models.
 
 * Other options available in Scikit-learn ensemble methods e.g. voting classifier/regressor or stacking models to reduce biases
