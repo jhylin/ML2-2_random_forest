@@ -354,10 +354,14 @@ type(y_mp_test)
 
 Mean squared error between y_true (max phase null compounds' pKi values) and y_pred
 
+MSE - closer to zero, the better the model is (less errors present)
+
 ```{python}
 from sklearn.metrics import mean_squared_error
 mean_squared_error(y_true, y_mp_test)
 ```
+
+R2 - closer to 1, the better the model is (negative likely model was not performing as well as expected or as quoted from scikit-learn "arbitrarily worse")
 
 ```{python}
 from sklearn.metrics import r2_score
