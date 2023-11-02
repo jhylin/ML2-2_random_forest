@@ -164,76 +164,122 @@ data.head()
 ```
 
 ```{python}
-#data["max_phase"].replace({"null": 0}, inplace=True)
-```
-
-```{python}
-data.head()
-```
-
-```{python}
 # Trial using ImbalancedLearningRegression
 import ImbalancedLearningRegression as iblr
 
 data = data.copy()
 
 # Using random over-sampling on the original dataset (pre-max phase split)
-# data_ro = iblr.ro(data = data, y = "pKi", samp_method="extreme")
+# data_ro = iblr.ro(data = data, y = "pKi")
 # print(data_ro.shape)
-
-# Using random under-sampling
-# data_ru = iblr.random_under(data = data, y = "pKi")
-# print(data_ru.shape)
-
-#Gaussian noise
-data_ro = iblr.gn(data = data, y = "pKi", pert = 1)
-print(data_ro.shape)
 ```
 
 ```{python}
-#data_ro.head()
-
-#data_ru.head()
+# Gaussian noise
+data_gn = iblr.gn(data = data, y = "pKi", pert = 1)
+print(data_gn.shape)
 ```
 
 ```{python}
-data_ro_mp4 = data_ro[data_ro["max_phase"] == 4]
-data_ro_mp4
-print(data_ro_mp4.shape)
+# Gaussian Noise
+# Followed by max phase split, where 4 = training
+data_gn_mp4 = data_gn[data_gn["max_phase"] == 4]
+data_gn_mp4
+print(data_gn_mp4.shape)
+```
+
+Random over-sampling keeps all 10 max phase 4 compounds.
+
+```{python}
+# Random over-sampling
+# Followed by max phase split, where 4 = training
+# data_ro_mp4 = data_ro[data_ro["max_phase"] == 4]
+# data_ro_mp4
+# print(data_ro_mp4.shape)
 ```
 
 ```{python}
-# under-sampling - nil max phase 4 compounds!
-# data_ru_mp4 = data_ru[data_ru["max_phase"] == 4]
-# data_ru_mp4
-# print(data_ru_mp4.shape)
+# Gaussian Noise
+# Also splitted max phase null compounds = testing
+data_gn_mp_null = data_gn[data_gn["max_phase"] == "null"]
+data_gn_mp_null
+# Show shape of df for max phase null compounds
+print(data_gn_mp_null.shape)
 ```
 
-```{python}
-data_ro_mp_null = data_ro[data_ro["max_phase"] == "null"]
-data_ro_mp_null
-print(data_ro_mp_null.shape)
-```
+Random over-sampling is actually oversampling the max phase null compounds (so number increased).
 
 ```{python}
-# under-sampling
-# data_ru_mp_null = data_ru[data_ru["max_phase"] == "null"]
-# data_ru_mp_null
-# print(data_ru_mp_null.shape)
+# Random over-sampling
+# # Also splitted max phase null compounds = testing
+# data_ro_mp_null = data_ro[data_ro["max_phase"] == "null"]
+# data_ro_mp_null
+# # Show shape of df for max phase null compounds
+# print(data_ro_mp_null.shape)
 ```
 
+Tested over-sampling - essentially it increased the sample size of all max phase null compounds with all 10 max phase 4 compounds staying the same.
+
+Tested under-sampling - removed all of the max phase 4 compounds, therefore not ideal, with max phase null compounds also reduced in size too.
+
 ```{python}
+# Quick look at how the pKi values differed 
+# after applying iblr to dataset
+
 import matplotlib.pyplot as plt
 
-## plot y distribution 
-# seaborn.kdeplot(housing['SalePrice'], label = "Original")
-# seaborn.kdeplot(housing_gn['SalePrice'], label = "Modified")
-# plt.legend(labels=["Original","Modified"])
-
-
+# Plot target variable distributions
 sns.kdeplot(data["pKi"], label = "Original")
-sns.kdeplot(data_ro["pKi"], label = "Modified")
+sns.kdeplot(data_gn["pKi"], label = "Modified")
 plt.legend(labels = ["Original", "Modified"])
+```
+
+```{python}
+# Checking pKi value range for max phase 4 compounds
+#data_mp4
+```
+
+
+Training data.
+```{python}
+# Select molecular features for X variable
+X_mp4_gn_df = data_gn_mp4[['mw', 'fsp3', 'n_lipinski_hba', 'n_lipinski_hbd', 'n_rings', 'n_hetero_atoms', 'n_heavy_atoms', 'n_rotatable_bonds', 'n_radical_electrons', 'tpsa', 'qed', 'clogp', 'sas', 'n_aliphatic_carbocycles', 'n_aliphatic_heterocyles', 'n_aliphatic_rings', 'n_aromatic_carbocycles', 'n_aromatic_heterocyles', 'n_aromatic_rings', 'n_saturated_carbocycles', 'n_saturated_heterocyles', 'n_saturated_rings']]
+
+print(X_mp4_gn_df.shape)
+X_mp4_gn_df.head()
+```
+
+```{python}
+X_mp4_gn = X_mp4_gn_df.to_numpy()
+```
+
+```{python}
+# y variable (target outcome - pKi)
+y_mp4_gn_df = data_gn_mp4["pKi"]
+
+y_mp4_gn = y_mp4_gn_df.to_numpy()
+y_mp4_gn
+```
+
+Fitting iblr-Gaussian noise training data onto another random forest regressor model.
+
+```{python}
+# n_estimators = 100 by default
+# note: if wanting to use whole dataset - switch off "bootstrap" parameter by using "False"
+rfreg_gn = RandomForestRegressor(max_depth=3, random_state=1)
+rfreg_gn.fit(X_mp4_gn, y_mp4_gn)
+```
+
+Preparing testing data.
+
+```{python}
+# Set up X test variable with the same molecular features
+X_mp_gn_test_df = data_gn_mp_null[['mw', 'fsp3', 'n_lipinski_hba', 'n_lipinski_hbd', 'n_rings', 'n_hetero_atoms', 'n_heavy_atoms', 'n_rotatable_bonds', 'n_radical_electrons', 'tpsa', 'qed', 'clogp', 'sas', 'n_aliphatic_carbocycles', 'n_aliphatic_heterocyles', 'n_aliphatic_rings', 'n_aromatic_carbocycles', 'n_aromatic_heterocyles', 'n_aromatic_rings', 'n_saturated_carbocycles', 'n_saturated_heterocyles', 'n_saturated_rings']]
+
+# Convert X test variables from df to arrays
+X_mp_gn_test = X_mp_gn_test_df.to_numpy()
+
+X_mp_gn_test
 ```
 
 <br>
@@ -250,6 +296,12 @@ rfreg trained model used max phase splits only.
 
 # or use:
 y_mp_test = rfreg.predict(X_mp_test)
+```
+
+Predicting iblr-Gaussian Noise data with max phase splits.
+
+```{python}
+y_mp_gn_test = rfreg_gn.predict(X_mp_gn_test)
 ```
 
 <br>
@@ -269,6 +321,15 @@ print(f"Random forest regressor testing accuracy: {rfreg.score(X_mp_test, y_mp_t
 So it looked like both the training and testing accuracies for the random forest regressor model (rfreg) were quite high, meaning that the model was able to remember the molecular features well from the training set (the tiny sample of 10 compounds), and the model was able to apply them to the testing set (which should contain about 400s of compounds) as well, in order to make predictions on the target value of pKi. So this has confirmed that the model was indeed making predictions (rather than not making any at all, which meant there might be no point in finding out which features were important in the data, so it was a good checking point during the random forest model building exercise), therefore, we could proceed to the next step of generating some feature importances, which were useful information to fill in the bigger story i.e. which features were pivotal for influencing the pKi values of prescription drugs targeting AChE? 
 
 *?optional - May need to add a mean squared error for y_mp4 & y_mp_test (= rfreg.predict(X_mp_test))*
+
+```{python}
+# iblr-Gaussian noise & max phase splitted data
+# Training set accuracy
+print(f"Random forest regressor training accuracy: {rfreg_gn.score(X_mp4_gn, y_mp4_gn):.2f}")
+
+# Testing set accuracy
+print(f"Random forest regressor testing accuracy: {rfreg_gn.score(X_mp_gn_test, y_mp_gn_test):.2f}")
+```
 
 <br>
 
