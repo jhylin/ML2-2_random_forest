@@ -218,9 +218,11 @@ Random over-sampling is actually oversampling the max phase null compounds (so n
 # print(data_ro_mp_null.shape)
 ```
 
-Tested over-sampling - essentially it increased the sample size of all max phase null compounds with all 10 max phase 4 compounds staying the same.
+Tested over-sampling - essentially it increased the sample size of all max phase null compounds with all 10 max phase 4 compounds kept.
 
-Tested under-sampling - removed all of the max phase 4 compounds, therefore not ideal, with max phase null compounds also reduced in size too.
+Tested under-sampling - removed all of the max phase 4 compounds (therefore not ideal), with max phase null compounds also reduced in size too.
+
+Decided to stick with Gauissian Noise version as it reduced both max phase 4 compounds slightly, and increased the max phase null compounds slightly as well. It appeared to be the most balanced adjustments for both max phase null and 4 compounds.
 
 ```{python}
 # Quick look at how the pKi values differed 
@@ -234,13 +236,15 @@ sns.kdeplot(data_gn["pKi"], label = "Modified")
 plt.legend(labels = ["Original", "Modified"])
 ```
 
+Range of pKi values for max phase 4 compounds was between 4 and 8.
+
 ```{python}
 # Checking pKi value range for max phase 4 compounds
 #data_mp4
 ```
 
+Preparing training data.
 
-Training data.
 ```{python}
 # Select molecular features for X variable
 X_mp4_gn_df = data_gn_mp4[['mw', 'fsp3', 'n_lipinski_hba', 'n_lipinski_hbd', 'n_rings', 'n_hetero_atoms', 'n_heavy_atoms', 'n_rotatable_bonds', 'n_radical_electrons', 'tpsa', 'qed', 'clogp', 'sas', 'n_aliphatic_carbocycles', 'n_aliphatic_heterocyles', 'n_aliphatic_rings', 'n_aromatic_carbocycles', 'n_aromatic_heterocyles', 'n_aromatic_rings', 'n_saturated_carbocycles', 'n_saturated_heterocyles', 'n_saturated_rings']]
@@ -320,8 +324,6 @@ print(f"Random forest regressor testing accuracy: {rfreg.score(X_mp_test, y_mp_t
 
 So it looked like both the training and testing accuracies for the random forest regressor model (rfreg) were quite high, meaning that the model was able to remember the molecular features well from the training set (the tiny sample of 10 compounds), and the model was able to apply them to the testing set (which should contain about 400s of compounds) as well, in order to make predictions on the target value of pKi. So this has confirmed that the model was indeed making predictions (rather than not making any at all, which meant there might be no point in finding out which features were important in the data, so it was a good checking point during the random forest model building exercise), therefore, we could proceed to the next step of generating some feature importances, which were useful information to fill in the bigger story i.e. which features were pivotal for influencing the pKi values of prescription drugs targeting AChE? 
 
-*?optional - May need to add a mean squared error for y_mp4 & y_mp_test (= rfreg.predict(X_mp_test))*
-
 ```{python}
 # iblr-Gaussian noise & max phase splitted data
 # Training set accuracy
@@ -330,6 +332,57 @@ print(f"Random forest regressor training accuracy: {rfreg_gn.score(X_mp4_gn, y_m
 # Testing set accuracy
 print(f"Random forest regressor testing accuracy: {rfreg_gn.score(X_mp_gn_test, y_mp_gn_test):.2f}")
 ```
+
+```{python}
+data_mp_null.head()
+```
+
+```{python}
+#data_mp_null = data_mp_null[data_mp_null["max_phase"] == "null"]
+y_true = data_mp_null["pKi"]
+y_true = y_true.to_numpy(copy=True)
+```
+
+```{python}
+type(y_true)
+y_true
+```
+
+```{python}
+type(y_mp_test)
+```
+
+Mean squared error between y_true (max phase null compounds' pKi values) and y_pred
+
+```{python}
+from sklearn.metrics import mean_squared_error
+mean_squared_error(y_true, y_mp_test)
+```
+
+```{python}
+from sklearn.metrics import r2_score
+r2_score(y_true, y_mp_test)
+```
+
+Because the data was re-sampled in a iblr-gn way, the size of array would be different from the original dataset, so grabbing the iblr-gn modified data.
+
+```{python}
+y_true_gn = data_gn_mp_null["pKi"]
+y_true_gn = y_true_gn.to_numpy(copy=True)
+```
+
+```{python}
+# R squared for iblr-gn data
+#type(y_true_gn)
+r2_score(y_true_gn, y_mp_gn_test)
+```
+
+```{python}
+# MSE for iblr-gn data
+mean_squared_error(y_true_gn, y_mp_gn_test)
+```
+
+Well, it appeared iblr-gn data might not offer much advantage to the original max phase split method, even the max phase split method wasn't that great either.
 
 <br>
 
@@ -508,7 +561,7 @@ plt.show()
 # sklearn.metrics.get_scorer_names() 
 ```
 
-*Might not actually code for the ones below (due to length of post), but they would be worth looking into if doing full-scale, comprehensive ML models using random forest:
+*Not coding for the ones below (due to length of post), but they should be looked into if doing full-scale, comprehensive ML models using random forest:
 
 - tree depths (max_depth)
 
