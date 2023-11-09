@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - model building, feature importances & hyperparameter tuning"
 author: Jennifer HY Lin
-date: '2023-11-3'
+date: '2023-11-9'
 draft: true
 categories: 
     - Machine learning projects
@@ -232,15 +232,13 @@ print(data_gn_mp_null.shape)
 # print(data_ro_mp_null.shape)
 ```
 
-Random over-sampling keeps all 10 max phase 4 compounds.
+Random over-sampling actually oversampled the max phase null compounds (sample size increased), and keeping all 10 max phase 4 compounds.
 
-Random over-sampling is actually oversampling the max phase null compounds (so number increased).
+Under-sampling removed all of the max phase 4 compounds (which was most likely not the best option), with max phase null compounds also reduced in size too.
 
-Tested over-sampling - essentially it increased the sample size of all max phase null compounds with all 10 max phase 4 compounds kept.
+I also used the Gauissian Noise sampling and it reduced max phase 4 compounds slightly, and increased the max phase null compounds. 
 
-Tested under-sampling - removed all of the max phase 4 compounds (therefore not ideal), with max phase null compounds also reduced in size too.
-
-Decided to stick with Gauissian Noise version as it reduced both max phase 4 compounds slightly, and increased the max phase null compounds slightly as well. It appeared to be the most balanced adjustments for both max phase null and 4 compounds.
+The change in the distribution of pKi values between the original and sample-modified datasets could be seen in the plot below.
 
 ```{python}
 # Quick look at how the pKi values differed 
@@ -448,6 +446,34 @@ feature_df = feature_df.rename(columns = {0: "feature_importances"})
 
 # Sort values of feature importances in descending order
 feature_df = feature_df.sort_values("feature_importances", ascending=False)
+```
+
+```{python}
+# Function to convert array to df leading to plots - for use in feature_importances_ & permutation_importance
+
+def array_to_frame(feat_imp_array, X_df):
+
+    # Convert the feat_imp array into dataframe
+    feat_imp_df = pd.DataFrame(feat_imp_array)
+    
+    # Obtain feature names via column names of dataframe
+    # Rename the index as "features"
+    feature = X_df.columns.rename("features")
+
+    # Convert the index to dataframe
+    feature_name_df = feature.to_frame(index = False)
+
+    # Concatenate feature_imp_df & feature_name_df
+    feature_df = pd.concat(
+        [feature_imp_df, feature_name_df], 
+        axis=1
+        ).rename(
+            # Rename the column for feature importances
+            columns = {0: "feature_importances"}
+            ).sort_values(
+                # Sort values of feature importances in descending order
+                "feature_importances", ascending=False
+                )
 ```
 
 ```{python}
