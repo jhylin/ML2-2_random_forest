@@ -427,6 +427,8 @@ feature_imp
 ```
 
 ```{python}
+# Initial code for converting array into df---
+
 # Convert the feature_imp array into dataframe
 feature_imp_df = pd.DataFrame(feature_imp)
 #feature_imp_df
@@ -451,7 +453,15 @@ feature_df = feature_df.sort_values("feature_importances", ascending=False)
 ```{python}
 # Function to convert array to df leading to plots - for use in feature_importances_ & permutation_importance
 
-def array_to_frame(feat_imp_array, X_df):
+def feat_imp_plot(feat_imp_array, X_df):
+
+    """
+    Function to convert feature importance array into a dataframe, which is then imported into a bar plot to show the importance ranking of each feature in the random forest model for the dataset used.
+
+    feat_imp_array is the array obtained from the feature_importances_ attribute.
+
+    X_df is the dataframe for the X variable, where the feature column names will be used in the plot.
+    """
 
     # Convert the feat_imp array into dataframe
     feat_imp_df = pd.DataFrame(feat_imp_array)
@@ -465,7 +475,7 @@ def array_to_frame(feat_imp_array, X_df):
 
     # Concatenate feature_imp_df & feature_name_df
     feature_df = pd.concat(
-        [feature_imp_df, feature_name_df], 
+        [feat_imp_df, feature_name_df], 
         axis=1
         ).rename(
             # Rename the column for feature importances
@@ -474,6 +484,17 @@ def array_to_frame(feat_imp_array, X_df):
                 # Sort values of feature importances in descending order
                 "feature_importances", ascending=False
                 )
+    
+    # Seaborn bar plot
+    sns.barplot(
+        feature_df, 
+        x = "feature_importances", 
+        y = "features")
+```
+
+```{python}
+# Testing feat_imp_plot function
+feat_imp_plot(feature_imp, X_mp4_df)
 ```
 
 ```{python}
