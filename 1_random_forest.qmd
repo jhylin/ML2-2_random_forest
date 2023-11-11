@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - model building, feature importances & hyperparameter tuning"
 author: Jennifer HY Lin
-date: '2023-11-9'
+date: '2023-11-10'
 draft: true
 categories: 
     - Machine learning projects
@@ -361,7 +361,7 @@ y_true = y_true.to_numpy(copy=True)
 
 ```{python}
 type(y_true)
-y_true
+#y_true
 ```
 
 ```{python}
@@ -456,9 +456,9 @@ feature_df = feature_df.sort_values("feature_importances", ascending=False)
 def feat_imp_plot(feat_imp_array, X_df):
 
     """
-    Function to convert feature importance array into a dataframe, which is then imported into a bar plot to show the importance ranking of each feature in the random forest model for the dataset used.
+    Function to convert feature importance array into a dataframe, which is then used to plot a bar graph to show the feature importance ranking in the random forest model for the dataset used.
 
-    feat_imp_array is the array obtained from the feature_importances_ attribute.
+    feat_imp_array is the array obtained from the feature_importances_ attribute, after having a estimator/model fitted.
 
     X_df is the dataframe for the X variable, where the feature column names will be used in the plot.
     """
@@ -524,22 +524,26 @@ So here I've tried to use the model-agnostic permutation_importance function.
 from sklearn.inspection import permutation_importance
 
 perm_result = permutation_importance(rfreg, X_mp_test, y_mp_test, n_repeats=10, random_state=1, n_jobs=2)
+
+type(perm_result)
 ```
 
 ```{python}
-sorted_perm_result = perm_result.importances_mean.argsort()
+perm_imp = perm_result.importances_mean
 
-# An array
-sorted_perm_result 
-
-# Convert array into df
-perm_result_df = pd.DataFrame(sorted_perm_result)
-perm_result_df
-
-# Write a function to convert array to df leading to plots - for use in feature_importances_ & permutation_importance
-
-
+# Confirm it produces an array
+type(perm_imp)
 ```
+
+```{python}
+# Trial using the function feat_imp_plot(feat_imp_array, X_df) on perm_imp result
+
+feat_imp_plot(perm_imp, X_mp4_df)
+```
+
+It generated a different feature importance ranking, although somewhat similar as well, as shown from the horizontal bar graph.
+
+* Might not cover SHAP value for feature importances (due to post length!), but mention this was also useful as it was a model-agnostic method that could be applied in many scenarios
 
 <br>
 
@@ -640,7 +644,6 @@ plt.show()
 
 - nodes
 
-* Might not cover SHAP value for feature importances (due to post length!), but mention this was also useful as it was a model-agnostic method that could be applied in many scenarios
 
 * Plots - Black-box ML e.g. if comparing clogp vs. pKi? (unlike white-box ML for decision tree) - or can mention that the feature importances section was necessary to shed some lights and remove some layers of the black-box style of random forest by showing which features were making impacts on the predictive models.
 
