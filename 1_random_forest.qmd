@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - model building, feature importances & hyperparameter tuning"
 author: Jennifer HY Lin
-date: '2023-11-10'
+date: '2023-11-11'
 draft: true
 categories: 
     - Machine learning projects
@@ -557,7 +557,7 @@ from sklearn.model_selection import cross_val_score, RepeatedKFold
 ```
 
 * Cross validations & hyperparameter tuning 
-1. number of trees (n_estimators) 
+- number of trees (n_estimators) 
 
 ```{python}
 # ---Evaluate a list of models with different number of trees---
