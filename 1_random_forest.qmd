@@ -628,28 +628,26 @@ plt.show()
 Small data prep for Seaborn plot - a long-winded way of sorting data and plotting in Seaborn! Matplotlib seems much more straightforward.
 
 ```{python}
+# Combine results & names lists into dataframe
 cv_results = pd.DataFrame(results, index = [names])
-cv_results
 ```
 
 ```{python}
+# Reset index and rename the number of trees column
 cv_results = cv_results.reset_index().rename(columns={"level_0": "Number_of_trees"})
-
-cv_results
 ```
 
-
 ```{python}
+# Melt the dataframe by number of trees column
 cv_results = cv_results.melt(id_vars="Number_of_trees")
 ```
 
-```{python}
-# Cast column "Number_of_trees" to integer
-#bioact_df = bioact_df.astype({"standard_value": "float64"})
-#cv_results.astype({"Number_of_trees": "int"})
-```
+Using natural sort to sort numerical values. GitHub repo: https://github.com/SethMMorton/natsort
+
+Otherwise, using sort_values() by itself will be sorting the numbers lexicographical order (i.e. by first digit only), which is not really in ascending order.
 
 ```{python}
+# Sort by the number of trees column
 from natsort import index_natsorted
 import numpy as np
 cv_results = cv_results.sort_values(
@@ -662,6 +660,8 @@ cv_results = cv_results.sort_values(
 # Try Seaborn version too
 sns.boxplot(cv_results, x="Number_of_trees", y="value", showmeans=True)
 ```
+
+The Seaborn boxplot shown should be very similar to the Matplotlib one with also the mean scores shown for different number of trees used.
 
 ```{python}
 # Show all scoring metrics - URL link: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
