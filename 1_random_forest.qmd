@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - model building, feature importances & hyperparameter tuning"
 author: Jennifer HY Lin
-date: '2023-11-11'
+date: '2023-11-12'
 draft: true
 categories: 
     - Machine learning projects
@@ -86,7 +86,7 @@ Two approaches were used, where one was based purely on max phase split (between
 
 Setting up X variable first via the dataframe, and converting it into a NumPy array X (no. of samples, no. of features), keeping it the same as how it was in the decision tree series.
 
-Note: It's usually recommended to copy the original data or dataframe for further data manipulations to avoid any unnecessary changes to the original dataset (this was not used in the decision tree posts but since I'm going to use the same set of data again I'd better do this here.)
+Note: It's usually recommended to copy the original data or dataframe for further data manipulations to avoid any unnecessary changes to the original dataset (this was not used in the decision tree posts, but since I'm going to use the same set of data again I'd better do this here.)
 
 ```{python}
 # X variables (molecular features)---
@@ -499,7 +499,7 @@ feat_imp_plot(feature_imp, X_mp4_df)
 
 ```{python}
 # Seaborn bar plot
-sns.barplot(feature_df, x = "feature_importances", y = "features")
+# sns.barplot(feature_df, x = "feature_importances", y = "features")
 ```
 
 An alternative way to plot was via Matplotlib directly (note: Seaborn also uses Matplotlib as well, so the plots are pretty similar). The code below were probably a bit more straightforward but without axes named and values were not sorted.
@@ -620,13 +620,47 @@ Best model performance would be the one with the most negative value for average
 
 ```{python}
 # Matplotlib boxplots for each no. of tree model with average mean squared errors shown
+import matplotlib.pyplot as plt
 plt.boxplot(results, labels=names, showmeans=True)
 plt.show()
 ```
 
+Small data prep for Seaborn plot - a long-winded way of sorting data and plotting in Seaborn! Matplotlib seems much more straightforward.
+
+```{python}
+cv_results = pd.DataFrame(results, index = [names])
+cv_results
+```
+
+```{python}
+cv_results = cv_results.reset_index().rename(columns={"level_0": "Number_of_trees"})
+
+cv_results
+```
+
+
+```{python}
+cv_results = cv_results.melt(id_vars="Number_of_trees")
+```
+
+```{python}
+# Cast column "Number_of_trees" to integer
+#bioact_df = bioact_df.astype({"standard_value": "float64"})
+#cv_results.astype({"Number_of_trees": "int"})
+```
+
+```{python}
+from natsort import index_natsorted
+import numpy as np
+cv_results = cv_results.sort_values(
+    by="Number_of_trees",
+    key=lambda x: np.argsort(index_natsorted(cv_results["Number_of_trees"]))
+)
+```
+
 ```{python}
 # Try Seaborn version too
-
+sns.boxplot(cv_results, x="Number_of_trees", y="value", showmeans=True)
 ```
 
 ```{python}
