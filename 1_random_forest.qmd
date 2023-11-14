@@ -543,6 +543,19 @@ feat_imp_plot(perm_imp, X_mp4_df)
 
 It generated a different feature importance ranking, although somewhat similar as well, as shown from the horizontal bar graph.
 
+<br>
+
+###### **SHAP approach**
+
+Shapley additive explanations
+
+GitHub repo: https://github.com/shap/shap
+
+```{python}
+import shap
+
+```
+
 * Might not cover SHAP value for feature importances (due to post length!), but mention this was also useful as it was a model-agnostic method that could be applied in many scenarios
 
 <br>
