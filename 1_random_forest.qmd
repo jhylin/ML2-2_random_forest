@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - model building, feature importances & hyperparameter tuning"
 author: Jennifer HY Lin
-date: '2023-11-12'
+date: '2023-11-14'
 draft: true
 categories: 
     - Machine learning projects
@@ -563,12 +563,31 @@ TreeExplainer bibtex ref:
   publisher={Nature Publishing Group}
 }
 
+Reference: https://mljar.com/blog/feature-importance-in-random-forest/
+
 ```{python}
 import shap
 
+shap_explainer = shap.TreeExplainer(rfreg)
+# X_test needs to be a dataframe (not numpy array)
+# otherwise feature names won't show in plot
+shap_values = shap_explainer.shap_values(X_mp_test_df)
+
+# Horizontal bar plot
+shap.summary_plot(shap_values, X_mp_test_df, plot_type = "bar")
 ```
 
-* Might not cover SHAP value for feature importances (due to post length!), but mention this was also useful as it was a model-agnostic method that could be applied in many scenarios
+```{python}
+# Dot plot
+shap.summary_plot(shap_values, X_mp_test_df)
+```
+
+```{python}
+# Violin plot
+shap.summary_plot(shap_values, X_mp_test_df, plot_type = "violin")
+
+# Alternative option: "layered_violin"
+```
 
 <br>
 
