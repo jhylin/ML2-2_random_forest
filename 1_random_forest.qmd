@@ -2,7 +2,7 @@
 title: "Random forest"
 subtitle: "Series 2.2 - model building, feature importances & hyperparameter tuning"
 author: Jennifer HY Lin
-date: '2023-11-17'
+date: '2023-11-19'
 draft: true
 categories: 
     - Machine learning projects
@@ -63,6 +63,15 @@ import sklearn
 from sklearn.ensemble import RandomForestRegressor
 # Showing version of *scikit-learn* used
 print(sklearn.__version__)
+
+# For imbalanced datasets in regression 
+import ImbalancedLearningRegression as iblr
+# Plots
+import matplotlib.pyplot as plt
+
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+import shap
 ```
 
 Importing dataset that was preprocessed from last time. Link to data source: [first decision tree post](https://jhylin.github.io/Data_in_life_blog/posts/16_ML2-1_Decision_tree/1_data_col_prep.html).
@@ -70,8 +79,7 @@ Importing dataset that was preprocessed from last time. Link to data source: [fi
 ```{python}
 data = pd.read_csv("ache_2d_chembl.csv")
 data.drop(columns = ["Unnamed: 0"], inplace=True)
-# Preparing data for compounds with max phase as "null"
-# Convert max phase with "NaN" to "null"
+# Preparing data for compounds with max phase with "NaN" by re-labelling to "null"
 data["max_phase"].fillna("null", inplace=True)
 data.head()
 ```
@@ -187,9 +195,9 @@ flowchart LR
 
 GitHub repository for ImbalancedLearningRegression package is available [here](https://imbalancedlearningregression.readthedocs.io/en/latest/intro.html).
 
-Also, I just wanted to mention that these were not the only techniques available for treating imbalanced datasets in regression, as I'm aware there were other ones in the literature, but I only had time to cover these a bit here for now.
+Also, I just wanted to mention that these were not the only techniques available for treating imbalanced datasets in regression, as there were other ones in the literature and most likely more are being developed currently, but I only had time to cover these here for now.
 
-Another really useful open-source resource for treating imbalanced datasets in classification problems was also available - [imbalance-learn library](https://imbalanced-learn.org/stable/index.html#).
+I also would like to mention another really useful open-source resource for treating imbalanced datasets in classifications since I did not use it in this post due to the problem being more of a regression one than a classification one in this post - [imbalance-learn library](https://imbalanced-learn.org/stable/index.html#).
 
 ```{python}
 # Original dataset - checking shape again
@@ -200,84 +208,47 @@ data.head()
 So my little test on using ImbalancedLearningRegression package started from down below.
 
 ```{python}
-# Trial using ImbalancedLearningRegression
-import ImbalancedLearningRegression as iblr
+iblr_data = data.copy()
 
-data = data.copy()
-
-# Using random over-sampling on the original dataset (pre-max phase split)
-# data_ro = iblr.ro(data = data, y = "pKi")
-# print(data_ro.shape)
-```
-
-```{python}
-# Gaussian noise
-data_gn = iblr.gn(data = data, y = "pKi", pert = 1)
+# Introducing Gaussian noise for data sampling
+data_gn = iblr.gn(data = iblr_data, y = "pKi", pert = 1)
 print(data_gn.shape)
 ```
 
 ```{python}
-# Gaussian Noise
-# Followed by max phase split, where 4 = training
+# Followed by max phase split, where max phase 4 = training dataset
 data_gn_mp4 = data_gn[data_gn["max_phase"] == 4]
 data_gn_mp4
 print(data_gn_mp4.shape)
 ```
 
 ```{python}
-# Random over-sampling
-# Followed by max phase split, where 4 = training
-# data_ro_mp4 = data_ro[data_ro["max_phase"] == 4]
-# data_ro_mp4
-# print(data_ro_mp4.shape)
-```
-
-```{python}
-# Gaussian Noise
-# Also splitted max phase null compounds = testing
+# Also splitted max phase null compounds = testing dataset
 data_gn_mp_null = data_gn[data_gn["max_phase"] == "null"]
 data_gn_mp_null
-# Show shape of df for max phase null compounds
 print(data_gn_mp_null.shape)
 ```
 
-```{python}
-# Random over-sampling
-# # Also splitted max phase null compounds = testing
-# data_ro_mp_null = data_ro[data_ro["max_phase"] == "null"]
-# data_ro_mp_null
-# # Show shape of df for max phase null compounds
-# print(data_ro_mp_null.shape)
-```
+Random over-sampling actually oversampled the max phase null compounds (sample size increased), while keeping all 10 max phase 4 compounds. Under-sampling removed all of the max phase 4 compounds (which was most likely not the best option), with max phase null compounds also reduced in size too. Due to post length, I did not show the code for random over-sampling and under-sampling, but for people who are interested, I think it would be interesting to test this out.
 
-Random over-sampling actually oversampled the max phase null compounds (sample size increased), and keeping all 10 max phase 4 compounds.
+So I ended up using Gauissian noise sampling and it reduced max phase 4 compounds slightly, and increased the max phase null compounds, which seemed to be the most balanced data sampling outcome. (Note: as stated from the documentation for ImbalancedLearningRegression pakcage, missing values within features would be removed automatically, I've taken care of this in my last series of posts so no difference were observed here.)
 
-Under-sampling removed all of the max phase 4 compounds (which was most likely not the best option), with max phase null compounds also reduced in size too.
+The change in the distribution of pKi values for the Gaussian noise sampling method between the original and sample-modified datasets could be seen in the kernel density estimate plot below. The modified dataset had a flatter target density curve than the original density plot, which was more concentrated and peaked between pKi values of 6 and 8.
 
-I also used the Gauissian Noise sampling and it reduced max phase 4 compounds slightly, and increased the max phase null compounds.
-
-The change in the distribution of pKi values between the original and sample-modified datasets could be seen in the plot below.
+Plot reference: https://github.com/paobranco/ImbalancedLearningRegression/blob/master/examples/Gaussian_noise.ipynb
 
 ```{python}
 # Quick look at how the pKi values differed 
-# after applying iblr to dataset
-
-import matplotlib.pyplot as plt
-
-# Plot target variable distributions
+# after applying Gaussian noise sampling to dataset
+# Plot target variable, pKi distributions
 sns.kdeplot(data["pKi"], label = "Original")
 sns.kdeplot(data_gn["pKi"], label = "Modified")
 plt.legend(labels = ["Original", "Modified"])
 ```
 
-Range of pKi values for max phase 4 compounds was between 4 and 8.
+It was also worth mentioning the range of pKi values for the 10 max phase 4 compounds collected was between 4 and 8.
 
-```{python}
-# Checking pKi value range for max phase 4 compounds
-#data_mp4
-```
-
-Preparing training data.
+Next, the modified ImbalancedLearningRegression-Gaussian noise (iblr-gn) training data was converted into a NumPy array.
 
 ```{python}
 # Select molecular features for X variable
@@ -291,6 +262,8 @@ X_mp4_gn_df.head()
 X_mp4_gn = X_mp4_gn_df.to_numpy()
 ```
 
+Similarly, this was also applied to the target y variable in the iblr-gn dataset.
+
 ```{python}
 # y variable (target outcome - pKi)
 y_mp4_gn_df = data_gn_mp4["pKi"]
@@ -299,7 +272,7 @@ y_mp4_gn = y_mp4_gn_df.to_numpy()
 y_mp4_gn
 ```
 
-Fitting iblr-Gaussian noise training data onto another random forest regressor model.
+Then the iblr-gn training data were fitted onto another random forest regressor model.
 
 ```{python}
 # n_estimators = 100 by default
@@ -308,7 +281,7 @@ rfreg_gn = RandomForestRegressor(max_depth=3, random_state=1)
 rfreg_gn.fit(X_mp4_gn, y_mp4_gn)
 ```
 
-Preparing testing data.
+Modified iblr-gn testing data were also prepared and converted into a NumPy array.
 
 ```{python}
 # Set up X test variable with the same molecular features
@@ -344,9 +317,9 @@ y_mp_gn_test = rfreg_gn.predict(X_mp_gn_test)
 
 <br>
 
-###### **Accuracy/scoring metrics of trained models**
+###### **Scoring and metrics of trained models**
 
-Checking model accuracy for both training and testing datasets was actually recommended to occur before moving onto finding out the feature importances. A *scikit-learn* explanation for this could be found in the section on ["Permutation feature importance"](https://scikit-learn.org/stable/modules/permutation_importance.html#permutation-feature-importance).
+Checking model accuracy for both training and testing datasets was actually recommended to take place before moving onto discovering the feature importances. A *scikit-learn* explanation for this could be found in the section on ["Permutation feature importance"](https://scikit-learn.org/stable/modules/permutation_importance.html#permutation-feature-importance). So the accuracy scores for the model were shown below.
 
 ```{python}
 # Training set accuracy
@@ -356,7 +329,9 @@ print(f"Random forest regressor training accuracy: {rfreg.score(X_mp4, y_mp4):.2
 print(f"Random forest regressor testing accuracy: {rfreg.score(X_mp_test, y_mp_test):.2f}")
 ```
 
-So it looked like both the training and testing accuracies for the random forest regressor model (rfreg) were quite high, meaning that the model was able to remember the molecular features well from the training set (the tiny sample of 10 compounds), and the model was able to apply them to the testing set (which should contain about 400s of compounds) as well, in order to make predictions on the target value of pKi. So this has confirmed that the model was indeed making predictions (rather than not making any at all, which meant there might be no point in finding out which features were important in the data, so it was a good checking point during the random forest model building exercise), therefore, we could proceed to the next step of generating some feature importances, which were useful information to fill in the bigger story i.e. which features were pivotal for influencing the pKi values of prescription drugs targeting AChE?
+It looked like both the training and testing accuracies for the random forest regressor model (rfreg) were quite high, meaning that the model was able to remember the molecular features well from the training set (the tiny sample of 10 compounds), and the model was able to apply them to the testing set (which should contain about 400 or so compounds) as well, in order to make predictions on the target value of pKi. This has somewhat confirmed that the model was indeed making predictions, rather than not making any predictions at all, which meant there might be no point in finding out which features were important in the data, so this step was a checking point prior to proceeding to next steps. Therefore, now we could move onto the next step of generating some feature importances to provide more useful information to fill in the bigger story i.e. which features were more pivotal towards influencing pKi values of approved drugs targeting acetylcholinesterase (AChE).
+
+Similar model accuracy scores were also done for the iblr-gn modified dataset, which appeared to follow a similar pattern as the purely max phase-splitted dataset.
 
 ```{python}
 # iblr-Gaussian noise & max phase splitted data
@@ -367,42 +342,40 @@ print(f"Random forest regressor training accuracy: {rfreg_gn.score(X_mp4_gn, y_m
 print(f"Random forest regressor testing accuracy: {rfreg_gn.score(X_mp_gn_test, y_mp_gn_test):.2f}")
 ```
 
-```{python}
-data_mp_null.head()
-```
+Now, setting up the y_true, which was the target variables (pKi) of the testing set, and were converted into a NumPy array too.
 
 ```{python}
-#data_mp_null = data_mp_null[data_mp_null["max_phase"] == "null"]
 y_true = data_mp_null["pKi"]
 y_true = y_true.to_numpy(copy=True)
 ```
 
-```{python}
-type(y_true)
-#y_true
-```
+I also found out the mean squared error (MSE) between y_true (actual max phase null compounds' pKi values) and y_pred (predicted max phase null compounds' pKi values). When MSE was closer to zero, the better the model was, meaning less errors were present.
+
+Some references that might help with explaining MSE:
+
+- [*scikit-learn* link](https://scikit-learn.org/stable/modules/model_evaluation.html#mean-squared-error)
+- [Stats StackExchange link](https://stats.stackexchange.com/questions/579755/whats-a-reasonable-mean-squared-error-or-rmse)
+- [blog post link](https://statisticsbyjim.com/regression/mean-squared-error-mse/) 
 
 ```{python}
-type(y_mp_test)
-```
-
-Mean squared error between y_true (max phase null compounds' pKi values) and y_pred
-
-MSE - closer to zero, the better the model is (less errors present)
-
-```{python}
-from sklearn.metrics import mean_squared_error
+# For max phase splitted dataset only
 mean_squared_error(y_true, y_mp_test)
 ```
 
-R2 - closer to 1, the better the model is (negative likely model was not performing as well as expected or as quoted from scikit-learn "arbitrarily worse")
+When R^2^ was closer to 1, the better the model is, with a usual range between 0 and 1 [@bruce2020]. If it was negative, then the model might not be performing as well as expected. However, there could be exceptions as other model evaluation methods should also be interpreted together with R^2^ (so a poor R^2^ might not be wholly indicating it's a poor model).
+
+Some references that might help with understanding R^2^:
+
+- [Stats StackExchange link](https://stats.stackexchange.com/questions/414349/is-my-model-any-good-based-on-the-diagnostic-metric-r2-auc-accuracy-rmse)
+- [*scikit-learn* link](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.r2_score.html#sklearn.metrics.r2_score)
+
 
 ```{python}
-from sklearn.metrics import r2_score
+# For max phase splitted dataset only
 r2_score(y_true, y_mp_test)
 ```
 
-Because the data was re-sampled in a iblr-gn way, the size of array would be different from the original dataset, so grabbing the iblr-gn modified data.
+Because the data was re-sampled in a iblr-gn way, the size of array would be different from the original dataset, so here I've specifically grabbed pKi values from the iblr-gn modified data to get the actual pKi values for the max phase null compounds.
 
 ```{python}
 y_true_gn = data_gn_mp_null["pKi"]
@@ -410,29 +383,28 @@ y_true_gn = y_true_gn.to_numpy(copy=True)
 ```
 
 ```{python}
-# R squared for iblr-gn data
-#type(y_true_gn)
-r2_score(y_true_gn, y_mp_gn_test)
-```
-
-```{python}
 # MSE for iblr-gn data
 mean_squared_error(y_true_gn, y_mp_gn_test)
 ```
 
-Well, it appeared iblr-gn data might not offer much advantage to the original max phase split method, even the max phase split method wasn't that great either.
+```{python}
+# R squared for iblr-gn data
+r2_score(y_true_gn, y_mp_gn_test)
+```
+
+Well, it appeared iblr-gn dataset might not offer much advantage than the original max phase splitted method. However, even the max phase splitted method wasn't that great either, but it might still be interesting to find out which features were important in relation to the pKi values.
 
 <br>
 
 ##### **Feature importances**
 
-There were two types of feature importances available in *scikit-learn*, which I've described below.
+There were two types of feature importances available in *scikit-learn*, which I've described below. I've also added a Shapley additive explanations (SHAP)approach to this section as well to show the different visualisation styles for feature importances on the same set of data.
 
 <br>
 
 ###### **feature_importances\_ attribute from *scikit-learn***
 
-The impurity-based feature importances (also known as Gini importance).
+The impurity-based feature importances (also known as Gini importance) were shown below.
 
 ```{python}
 # Compute feature importances on rfreg training model
@@ -445,40 +417,20 @@ feature_imp
 ```
 
 ```{python}
-# Initial code for converting array into df---
-
-# Convert the feature_imp array into dataframe
-feature_imp_df = pd.DataFrame(feature_imp)
-#feature_imp_df
-
-# Obtain feature names via column names of dataframe
-# Rename the index as "features"
-feature = X_mp4_df.columns.rename("features")
-
-# Convert the index to dataframe
-feature_name_df = feature.to_frame(index = False)
-
-# Concatenate feature_imp_df & feature_name_df
-feature_df = pd.concat([feature_imp_df, feature_name_df], axis=1)
-
-# Rename the column for feature importances
-feature_df = feature_df.rename(columns = {0: "feature_importances"})
-
-# Sort values of feature importances in descending order
-feature_df = feature_df.sort_values("feature_importances", ascending=False)
-```
-
-```{python}
-# Function to convert array to df leading to plots - for use in feature_importances_ & permutation_importance
+# Function to convert array to df leading to plots 
+# - for use in feature_importances_ & permutation_importance
 
 def feat_imp_plot(feat_imp_array, X_df):
 
     """
-    Function to convert feature importance array into a dataframe, which is then used to plot a bar graph to show the feature importance ranking in the random forest model for the dataset used.
+    Function to convert feature importance array into a dataframe, 
+    which is then used to plot a bar graph to show the feature importance ranking in the random forest model for the dataset used.
 
-    feat_imp_array is the array obtained from the feature_importances_ attribute, after having a estimator/model fitted.
+    feat_imp_array is the array obtained from the feature_importances_ attribute, 
+    after having a estimator/model fitted.
 
-    X_df is the dataframe for the X variable, where the feature column names will be used in the plot.
+    X_df is the dataframe for the X variable, 
+    where the feature column names will be used in the plot.
     """
 
     # Convert the feat_imp array into dataframe
@@ -515,12 +467,7 @@ def feat_imp_plot(feat_imp_array, X_df):
 feat_imp_plot(feature_imp, X_mp4_df)
 ```
 
-```{python}
-# Seaborn bar plot
-# sns.barplot(feature_df, x = "feature_importances", y = "features")
-```
-
-An alternative way to plot was via Matplotlib directly (note: Seaborn also uses Matplotlib as well, so the plots are pretty similar). The code below were probably a bit more straightforward but without axes named and values were not sorted.
+An alternative way to plot was via Matplotlib directly (note: Seaborn also uses Matplotlib as well, so the plots are pretty similar). The code below were probably a bit more straightforward but without axes named and values were not sorted (only as an example but more code could be added to do this).
 
 ```{python}
 # Matplotlib plot
@@ -536,15 +483,26 @@ There were known issues with the built-in feature_importances\_ attribute in *sc
 
 > ... The impurity-based feature importances computed on tree-based models suffer from two flaws that can lead to misleading conclusions. First they are computed on statistics derived from the training dataset and therefore do not necessarily inform us on which features are most important to make good predictions on held-out dataset. Secondly, they favor high cardinality features, that is features with many unique values. Permutation feature importance is an alternative to impurity-based feature importance that does not suffer from these flaws. ...
 
-So here I've tried to use the model-agnostic permutation_importance function.
+So I've also tried the permutation_importance function (a model-agnostic method).
 
 ```{python}
 from sklearn.inspection import permutation_importance
 
 perm_result = permutation_importance(rfreg, X_mp_test, y_mp_test, n_repeats=10, random_state=1, n_jobs=2)
 
+# Checking data type of perm_result
 type(perm_result)
 ```
+
+It normally returns a dictionary-like objects (e.g. Bunch) with the following 3 attributes:
+
+-   importances_mean (mean of feature importance)
+-   importances_std (standard deviation of feature importance)
+-   importances (raw permutation/feature importance scores)
+
+For details on these attributes, this *scikit-learn* [link](https://scikit-learn.org/stable/modules/generated/sklearn.inspection.permutation_importance.html#sklearn.inspection.permutation_importance) will add a bit more explanations.
+
+I decided to only use importances_mean for now.
 
 ```{python}
 perm_imp = perm_result.importances_mean
@@ -554,7 +512,7 @@ type(perm_imp)
 ```
 
 ```{python}
-# Trial using the function feat_imp_plot(feat_imp_array, X_df) on perm_imp result
+# Using the function feat_imp_plot() on perm_imp result to show plot
 
 feat_imp_plot(perm_imp, X_mp4_df)
 ```
@@ -565,18 +523,15 @@ It generated a different feature importance ranking, although somewhat similar a
 
 ###### **SHAP approach**
 
-Shapley additive explanations
+SHAP (Shapley additive explanations) values[@lundberg2020local2global][@shapley1953] were used here to provide a another way to figure out the feature importances. The GitHub repository for this SHAP approach could be accessed [here](https://github.com/shap/shap).
 
-GitHub repo: https://github.com/shap/shap
-
-TreeExplainer ref [@lundberg2020local2global]
+SHAP's TreeExplainer() was based on Tree SHAP algorithms [@lundberg2020local2global], and was used to show and explain feature importances within tree models. It could also be extended to boosted tree models such as LightGBM and XGBoost and also other tree models (as explained by the GitHub repository README.md and its documentation link provided).
 
 Other reference: https://mljar.com/blog/feature-importance-in-random-forest/
 
 ```{python}
-import shap
-
 shap_explainer = shap.TreeExplainer(rfreg)
+
 # X_test needs to be a dataframe (not numpy array)
 # otherwise feature names won't show in plot
 shap_values = shap_explainer.shap_values(X_mp_test_df)
@@ -585,33 +540,38 @@ shap_values = shap_explainer.shap_values(X_mp_test_df)
 shap.summary_plot(shap_values, X_mp_test_df, plot_type = "bar")
 ```
 
+Dot plot version:
+
 ```{python}
-# Dot plot
 shap.summary_plot(shap_values, X_mp_test_df)
 ```
 
+Violin plot:
+
 ```{python}
-# Violin plot
 shap.summary_plot(shap_values, X_mp_test_df, plot_type = "violin")
 
-# Alternative option: "layered_violin"
+# Alternative plot option: "layered_violin"
 ```
 
 <br>
 
 ##### **Hyperparameter tuning**
 
+One example was shown below on tuning the number of trees (n_estimators) used in the random forest model.
+
 ```{python}
 # Import additional ibraries
 from numpy import mean, std
+
 # RepeatedStratifiedKFold usually for binary or multi-class labels - ref link: https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html#sklearn.model_selection.KFold
+
 from sklearn.model_selection import cross_val_score, RepeatedKFold
 ```
 
--   Cross validations & hyperparameter tuning
--   number of trees (n_estimators)
-
 ```{python}
+# Function code adapted with thanks from ML Mastery - add URL
+
 # ---Evaluate a list of models with different number of trees---
 
 # Define dataset by using the same training dataset as above---
@@ -709,7 +669,7 @@ cv_results = cv_results.sort_values(
 ```
 
 ```{python}
-# Try Seaborn version too
+# Seaborn version
 sns.boxplot(cv_results, x="Number_of_trees", y="value", showmeans=True)
 ```
 
@@ -720,15 +680,21 @@ The Seaborn boxplot shown should be very similar to the Matplotlib one with also
 # sklearn.metrics.get_scorer_names() 
 ```
 
-\*Not coding for the ones below (due to length of post), but they should be looked into if doing full-scale, comprehensive ML models using random forest:
+Other hyperparameters that could be tuned included: 
 
 -   tree depths (max_depth)
 
--   number of samples (max_samples) (probably won't do this as the training sample size was already very small to start with!)
+-   number of samples (max_samples) 
 
 -   number of features (max_features) (can mention using RDKit's version to generate molecular features which would provide 209)
 
 -   nodes
+
+I've decided not to code for these other hyperparameters mentioned above due to the length of post currently, but they should be looked into if doing full-scale and comprehensive ML using random forest.
+
+<br>
+
+##### **Other things in random forests**
 
 -   Plots - Black-box ML e.g. if comparing clogp vs. pKi? (unlike white-box ML for decision tree) - or can mention that the feature importances section was necessary to shed some lights and remove some layers of the black-box style of random forest by showing which features were making impacts on the predictive models.
 
