@@ -161,7 +161,7 @@ Both X and y variables were used to fit the RandomForestRegressor() estimator.
 ```{python}
 # n_estimators = 100 by default
 # note: if wanting to use whole dataset - switch off "bootstrap" parameter by using "False"
-rfreg = RandomForestRegressor(max_depth=3, random_state=1)
+rfreg = RandomForestRegressor(max_depth=3, random_state=1, max_features=0.3)
 rfreg.fit(X_mp4, y_mp4)
 ```
 
@@ -292,7 +292,7 @@ Then the iblr-gn training data were fitted onto another random forest regressor 
 ```{python}
 # n_estimators = 100 by default
 # note: if wanting to use whole dataset - switch off "bootstrap" parameter by using "False"
-rfreg_gn = RandomForestRegressor(max_depth=3, random_state=1)
+rfreg_gn = RandomForestRegressor(max_depth=3, random_state=1, max_features=0.3)
 rfreg_gn.fit(X_mp4_gn, y_mp4_gn)
 ```
 
@@ -532,7 +532,7 @@ type(perm_imp)
 feat_imp_plot(perm_imp, X_mp4_df)
 ```
 
-It generated a different feature importances ranking, although somewhat similar to the previous one.
+It generated a different feature importances ranking (if looking at top 6 features), although somewhat similar to the previous one.
 
 <br>
 
