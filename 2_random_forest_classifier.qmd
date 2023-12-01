@@ -1,0 +1,31 @@
+---
+title: "Random forest classifier"
+subtitle: "Series 2.2.1 - more on imbalanced dataset"
+author: Jennifer HY Lin
+date: '2023-12-1'
+draft: true
+categories: 
+    - Machine learning projects
+    - Tree models
+    - Pandas
+    - Scikit-learn
+    - ChEMBL database
+    - Python
+jupyter: python3
+format: html
+bibliography: references.bib
+---
+
+##### **Introduction**
+
+This post is an addition towards the last post on random forest (RF), machine learning (ML) series 2.2, and was mainly inspired by the paper (cite Esposito et al. on ghostml) from this lab group, [rinikerlab](https://github.com/rinikerlab). When I started reading the paper, I felt that I should complete the random forest series by adding a random forest classifier model since the last post was only using a regressor. The other thing was that imbalanced datasets were a common problem in drug discovery projects, and as part of my steep learning curve, I should do something about it, so that was why this post exists. I also decided not to go over too much on the origins of imbalanced datasets in drug discovery as this paper has covered it quite thoroughly. I'm also aiming to make this post shorter than the last one (however, every time I sat down writing a post thinking that I should make it shorter, it always turns out to be longer than expected).
+
+<br>
+
+##### **The plan**
+
+- ?using chembl_downloader here or in future post - new dataset (longer preprocessing or mention at least)
+- ?using old dataset - imbalanced splits
+- re-label max phases as binary labels
+- ghostml code (shifting threshold)
+- RandomForestClassifier()
