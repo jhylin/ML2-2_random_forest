@@ -31,6 +31,60 @@ This post is an addition towards the last post on random forest (RF), machine le
     - data source thoroughness (ChEMBL version, reproducible data source workflow)
     - AChE as target, drug indication notebook as ref - max_phase_for_ind
 
+chembl_downloader reference notebooks:
+- https://github.com/cthoyt/chembl-downloader/blob/main/notebooks/drug-indications.ipynb (main reference)
+- https://github.com/PatWalters/practical_cheminformatics_tutorials/blob/1f7c61f83eec81081ef2605ac70440bf1940d914/misc/working_with_ChEMBL_drug_data.ipynb#L80 (full download of a specific version of ChEMBL)
+- https://github.com/iwatobipen/playground/blob/9970ab174cd87e4487390abab9a9ae4b80f0288f/make_peptide.ipynb#L12
+
+```{python}
+import pandas as pd
+import chembl_downloader
+from chembl_downloader import latest, queries, query
+```
+
+```{python}
+# Show the latest version of ChEMBL used
+latest_version = latest()
+
+print(f"The latest ChEMBL version is: {latest_version}")
+```
+
+```{python}
+# Query chembl_downloader to show SQL required to extract ChEMBL data for a specific protein target
+# target_chembl_id for AChE: CHEMBL220
+queries.markdown(queries.get_target_sql(target_id="CHEMBL220"))
+```
+
+```{python}
+# Following data download works (4.41GB for SQL query below, may take several min), need to add max phase SQL so can show max_phase for each compound
+
+sql = """
+sql
+SELECT
+    ASSAYS.chembl_id              AS assay_chembl_id,
+    TARGET_DICTIONARY.target_type,
+    TARGET_DICTIONARY.tax_id,
+    COMPOUND_STRUCTURES.canonical_smiles,
+    MOLECULE_DICTIONARY.chembl_id AS molecule_chembl_id,
+    ACTIVITIES.standard_type,
+    ACTIVITIES.pchembl_value
+FROM TARGET_DICTIONARY
+     JOIN ASSAYS ON TARGET_DICTIONARY.tid == ASSAYS.tid
+     JOIN ACTIVITIES ON ASSAYS.assay_id == ACTIVITIES.assay_id
+     JOIN MOLECULE_DICTIONARY ON MOLECULE_DICTIONARY.molregno == ACTIVITIES.molregno
+     JOIN COMPOUND_STRUCTURES ON MOLECULE_DICTIONARY.molregno == COMPOUND_STRUCTURES.molregno
+WHERE TARGET_DICTIONARY.chembl_id = 'CHEMBL220'
+    AND ACTIVITIES.pchembl_value IS NOT NULL
+"""
+
+df = chembl_downloader.query(sql)
+df.head()
+```
+
+
+
+
+
 * Model building
 - re-label max phases as binary labels (max phase null/0, max phase 4/1)
 
