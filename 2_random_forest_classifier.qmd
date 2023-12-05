@@ -85,8 +85,17 @@ df = chembl_downloader.query(sql)
 
 ```{python}
 df.head()
+```
 
-# try saving df as .csv file
+```{python}
+# Save df as .csv file
+df.to_csv("chembl_d_ache", sep=",", index=False)
+```
+
+```{python}
+df_ache = pd.read_csv("chembl_d_ache")
+
+df_ache.head()
 ```
 
 
