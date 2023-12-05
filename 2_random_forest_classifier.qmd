@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2023-12-1'
+date: '2023-12-5'
 draft: true
 categories: 
     - Machine learning projects
@@ -18,23 +18,23 @@ bibliography: references.bib
 
 ##### **Brief introduction**
 
-This post is an addition towards the last post on random forest (RF), machine learning (ML) series 2.2, and was mainly inspired by the paper (cite Esposito et al. on ghostml) from this lab group, [rinikerlab](https://github.com/rinikerlab). When I started reading the paper, I felt that I should complete the random forest series by adding a random forest classifier model since the last post was only using a regressor. The other thing was that imbalanced datasets were a common problem in drug discovery projects, and as part of my steep learning curve, I should do something about it, so that was why this post exists. I also decided not to go over too much on the origins of imbalanced datasets in drug discovery as this paper has covered it quite thoroughly. I'm also aiming to make this post shorter than the last one (however, every time I sat down writing a post thinking that I should make it shorter, it always turns out to be longer than expected).
+This post was an addition towards the last post on random forest (RF), machine learning (ML) series 2.2, and was mainly inspired by this paper (cite Esposito et al. on ghostml) from [rinikerlab](https://github.com/rinikerlab). When I started reading the paper, I felt that I should complete the random forest series by adding a random forest classifier model since last post only used a regressor. Another reason was that imbalanced datasets were a common problem in drug discovery projects, and as part of my steep learning curve, I should do something about it. I also decided not to go over too much on the origins of imbalanced datasets in drug discovery as this paper has covered it quite thoroughly. I was also aiming to make this post shorter than the last one (however, every time I sat down writing a post thinking that I should make it shorter, it always turned out to be longer than expected...).
 
 <br>
 
 ##### **The plan**
 
-*Something new - chembl_downloader & GHOST paper*
+*Introducing new packages - chembl_downloader & GHOST paper*
 
 * Data source
 - using chembl_downloader to get new dataset (minor cleaning/preprocessing as focus is on dealing with imbalanced datasets in RF classifier)
     - data source thoroughness (ChEMBL version, reproducible data source workflow)
-    - AChE as target, drug indication notebook as ref - max_phase_for_ind
+    - AChE as target
 
 chembl_downloader reference notebooks:
 - https://github.com/cthoyt/chembl-downloader/blob/main/notebooks/drug-indications.ipynb (main reference)
 - https://github.com/PatWalters/practical_cheminformatics_tutorials/blob/1f7c61f83eec81081ef2605ac70440bf1940d914/misc/working_with_ChEMBL_drug_data.ipynb#L80 (full download of a specific version of ChEMBL)
-- https://github.com/iwatobipen/playground/blob/9970ab174cd87e4487390abab9a9ae4b80f0288f/make_peptide.ipynb#L12
+
 
 ```{python}
 import pandas as pd
@@ -45,18 +45,19 @@ from chembl_downloader import latest, queries, query
 ```{python}
 # Show the latest version of ChEMBL used
 latest_version = latest()
-
 print(f"The latest ChEMBL version is: {latest_version}")
 ```
 
 ```{python}
 # Query chembl_downloader to show SQL required to extract ChEMBL data for a specific protein target
-# target_chembl_id for AChE: CHEMBL220
+# e.g. target_chembl_id for AChE: CHEMBL220
 queries.markdown(queries.get_target_sql(target_id="CHEMBL220"))
 ```
 
 ```{python}
-# Following data download works (4.41GB for SQL query below, may take several min), need to add max phase SQL so can show max_phase for each compound
+# Following data download works (4.41GB for SQL query below, may take several min)
+
+# Added MOLECULE_DICTIONARY.max_phase into sql to show max phases for compounds targeting AChE
 
 sql = """
 sql
@@ -66,6 +67,7 @@ SELECT
     TARGET_DICTIONARY.tax_id,
     COMPOUND_STRUCTURES.canonical_smiles,
     MOLECULE_DICTIONARY.chembl_id AS molecule_chembl_id,
+    MOLECULE_DICTIONARY.max_phase,
     ACTIVITIES.standard_type,
     ACTIVITIES.pchembl_value
 FROM TARGET_DICTIONARY
@@ -77,7 +79,7 @@ WHERE TARGET_DICTIONARY.chembl_id = 'CHEMBL220'
     AND ACTIVITIES.pchembl_value IS NOT NULL
 """
 
-df = chembl_downloader.query(sql)
+df = chembl_downloader.query(sql, version=latest_version)
 df.head()
 ```
 
