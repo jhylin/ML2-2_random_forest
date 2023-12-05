@@ -78,11 +78,15 @@ WHERE TARGET_DICTIONARY.chembl_id = 'CHEMBL220'
     AND ACTIVITIES.pchembl_value IS NOT NULL
     AND TARGET_DICTIONARY.target_type = 'SINGLE PROTEIN'
 """
+
+df = chembl_downloader.query(sql)
+#df.head()
 ```
 
 ```{python}
-df = chembl_downloader.query(sql)
 df.head()
+
+# try saving df as .csv file
 ```
 
 
