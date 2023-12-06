@@ -28,7 +28,7 @@ This post was an addition towards the last post on random forest (RF), machine l
 
 ##### **Data source**
 
-- using chembl_downloader to get new dataset (minor cleaning/preprocessing as focus is on dealing with imbalanced datasets in RF classifier)
+- using chembl_downloader to get new dataset 
     - data source thoroughness (ChEMBL version, reproducible data source workflow)
     - AChE as target
 
@@ -40,6 +40,8 @@ chembl_downloader reference notebooks:
 import pandas as pd
 import chembl_downloader
 from chembl_downloader import latest, queries, query
+import datamol as dm
+from rdkit.Chem import Descriptors
 ```
 
 ```{python}
@@ -94,10 +96,83 @@ df.to_csv("chembl_d_ache", sep=",", index=False)
 
 ```{python}
 df_ache = pd.read_csv("chembl_d_ache")
-
+print(df_ache.shape)
 df_ache.head()
 ```
 
+Minor cleaning/preprocessing as focus is on dealing with imbalanced datasets in RF classifier.
+
+Need to calculate RDKit/Datamol molecular properties based on canonical_smiles to prepare for RF classifier.
+
+```{python}
+## Generate RDKit molecules based on canonical_smiles column
+```
+
+```{python}
+# _preprocess function to sanitise compounds - adapted from datamol.io
+
+smiles_column = "canonical_smiles"
+
+dm.disable_rdkit_log()
+
+def _preprocess(row):
+    # Convert each compound to a RDKit molecule in the smiles column
+    mol = dm.to_mol(row[smiles_column], ordered=True)
+    # Fix common errors in the molecules
+    mol = dm.fix_mol(mol)
+    # Sanitise the molecules 
+    mol = dm.sanitize_mol(mol, sanifix=True, charge_neutral=False)
+    # Standardise the molecules
+    mol = dm.standardize_mol(
+        mol,
+        # Switch on to disconnect metal ions
+        disconnect_metals=True,
+        normalize=True,
+        reionize=True,
+        # Switch on "uncharge" to neutralise charges
+        uncharge=True,
+        # Taking care of stereochemistries of compounds
+        stereo=True,
+    )
+
+    row["rdkit_mol"] = dm.to_mol(mol)
+    row["standard_smiles"] = dm.standardize_smiles(dm.to_smiles(mol))
+    #row["selfies"] = dm.to_selfies(mol)
+    #row["inchi"] = dm.to_inchi(mol)
+    #row["inchikey"] = dm.to_inchikey(mol)
+    return row
+```
+
+```{python}
+df_prep = df_ache.apply(_preprocess, axis = 1)
+df_prep.head()
+```
+
+```{python}
+# Create a mol list based on RDKit molecules
+mol_list = df_prep["rdkit_mol"]
+
+# Convert series object into a list
+mol_list = list(mol_list)
+```
+
+```{python}
+# Calculate RDKit 2D molecular descriptors
+rdkit_mol_ls = [Descriptors.CalcMolDescriptors(mol) for mol in mol_list]
+
+# Convert the list of molecules with RDKit 2D descriptors into a dataframe
+df_prep_2d = pd.DataFrame(rdkit_mol_ls)
+print(df_prep_2d.shape)
+df_prep_2d.head()
+```
+
+**TODO**: Perhaps bundle above _preprocess functions and rest of the code into a class (small utility library)
+- main function is to:
+    - convert each molecule into a RDKit molecule from a dataframe
+    - fix, sanitise and standardise each molecule
+    - create a list of standardised RDKit molecules
+    - calculate RDKit 2D molecular descriptors based on the molecule list
+    - convert the list into a dataframe
 
 
 
