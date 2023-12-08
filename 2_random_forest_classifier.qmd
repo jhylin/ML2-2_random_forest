@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2023-12-5'
+date: '2023-12-8'
 draft: true
 categories: 
     - Machine learning projects
@@ -109,13 +109,15 @@ Need to calculate RDKit/Datamol molecular properties based on canonical_smiles t
 ```
 
 ```{python}
-# _preprocess function to sanitise compounds - adapted from datamol.io
-
+# Original preprocess function
 smiles_column = "canonical_smiles"
 
+# disable rdkit messages
 dm.disable_rdkit_log()
 
-def _preprocess(row):
+# preprocess function to sanitise compounds - adapted from datamol.io
+def preprocess(row):
+        
     # Convert each compound to a RDKit molecule in the smiles column
     mol = dm.to_mol(row[smiles_column], ordered=True)
     # Fix common errors in the molecules
@@ -144,9 +146,29 @@ def _preprocess(row):
 ```
 
 ```{python}
-df_prep = df_ache.apply(_preprocess, axis = 1)
+# Running preprocess function
+df_prep = df_ache.apply(preprocess, axis = 1)
 df_prep.head()
 ```
+
+**Little test section for preprocess_mol class code (incomplete, work-in-progress):**
+
+```{python}
+## Attempting to build class code to bundle several different code functions together 
+
+from preprocess_mol import * 
+```
+
+```{python}
+df_new = preprocess_mol(df_ache)
+```
+
+```{python}
+type(df_new)
+# generated preprocess_mol.preprocess_mol object
+```
+
+
 
 ```{python}
 # Create a mol list based on RDKit molecules
