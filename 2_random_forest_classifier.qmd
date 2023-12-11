@@ -28,7 +28,7 @@ This post was an addition towards the last post on random forest (RF), machine l
 
 ##### **Data source**
 
-- using chembl_downloader to get new dataset 
+Introducing chembl_downloader package to get new dataset 
     - data source thoroughness (ChEMBL version, reproducible data source workflow)
     - AChE as target
 
@@ -100,49 +100,49 @@ print(df_ache.shape)
 df_ache.head()
 ```
 
-Minor cleaning/preprocessing as focus is on dealing with imbalanced datasets in RF classifier.
+<br>
 
-Need to calculate RDKit/Datamol molecular properties based on canonical_smiles to prepare for RF classifier.
+##### **Some data cleaning**
+
+Minor cleaning/preprocessing as focus is on dealing with imbalanced datasets in RF classifier.
 
 ```{python}
 ## Generate RDKit molecules based on canonical_smiles column
-```
 
-```{python}
-# Original preprocess function
-smiles_column = "canonical_smiles"
+# # Original preprocess function
+# smiles_column = "canonical_smiles"
 
-# disable rdkit messages
-dm.disable_rdkit_log()
+# # disable rdkit messages
+# dm.disable_rdkit_log()
 
-# preprocess function to sanitise compounds - adapted from datamol.io
-def preprocess(row):
+# # preprocess function to sanitise compounds - adapted from datamol.io
+# def preprocess(row):
         
-    # Convert each compound to a RDKit molecule in the smiles column
-    mol = dm.to_mol(row[smiles_column], ordered=True)
-    # Fix common errors in the molecules
-    mol = dm.fix_mol(mol)
-    # Sanitise the molecules 
-    mol = dm.sanitize_mol(mol, sanifix=True, charge_neutral=False)
-    # Standardise the molecules
-    mol = dm.standardize_mol(
-        mol,
-        # Switch on to disconnect metal ions
-        disconnect_metals=True,
-        normalize=True,
-        reionize=True,
-        # Switch on "uncharge" to neutralise charges
-        uncharge=True,
-        # Taking care of stereochemistries of compounds
-        stereo=True,
-    )
+#     # Convert each compound to a RDKit molecule in the smiles column
+#     mol = dm.to_mol(row[smiles_column], ordered=True)
+#     # Fix common errors in the molecules
+#     mol = dm.fix_mol(mol)
+#     # Sanitise the molecules 
+#     mol = dm.sanitize_mol(mol, sanifix=True, charge_neutral=False)
+#     # Standardise the molecules
+#     mol = dm.standardize_mol(
+    #     mol,
+    #     # Switch on to disconnect metal ions
+    #     disconnect_metals=True,
+    #     normalize=True,
+    #     reionize=True,
+    #     # Switch on "uncharge" to neutralise charges
+    #     uncharge=True,
+    #     # Taking care of stereochemistries of compounds
+    #     stereo=True,
+    # )
 
-    row["rdkit_mol"] = dm.to_mol(mol)
-    row["standard_smiles"] = dm.standardize_smiles(dm.to_smiles(mol))
+    # row["rdkit_mol"] = dm.to_mol(mol)
+    # row["standard_smiles"] = dm.standardize_smiles(dm.to_smiles(mol))
     #row["selfies"] = dm.to_selfies(mol)
     #row["inchi"] = dm.to_inchi(mol)
     #row["inchikey"] = dm.to_inchikey(mol)
-    return row
+    # return row
 ```
 
 ```{python}
@@ -151,23 +151,20 @@ df_prep = df_ache.apply(preprocess, axis = 1)
 df_prep.head()
 ```
 
-**Little test section for preprocess_mol class code (incomplete, work-in-progress):**
+**Little test section for mini library of code (incomplete, work-in-progress):**
+
+**TODO**: Idea is to remove most function code in the post and save all code as a separate script (avoid repeating code from last few posts).
+
+- main function is to:
+    - calculate RDKit 2D molecular descriptors based on the molecule list
+    - convert the list into a dataframe
+
 
 ```{python}
-## Attempting to build class code to bundle several different code functions together 
+## Trial to create a mini library of code first
 
-from preprocess_mol import * 
+from random_forest import * 
 ```
-
-```{python}
-df_new = preprocess_mol(df_ache)
-```
-
-```{python}
-type(df_new)
-# generated preprocess_mol.preprocess_mol object
-```
-
 
 
 ```{python}
@@ -188,13 +185,7 @@ print(df_prep_2d.shape)
 df_prep_2d.head()
 ```
 
-**TODO**: Perhaps bundle above _preprocess functions and rest of the code into a class (small utility library)
-- main function is to:
-    - convert each molecule into a RDKit molecule from a dataframe
-    - fix, sanitise and standardise each molecule
-    - create a list of standardised RDKit molecules
-    - calculate RDKit 2D molecular descriptors based on the molecule list
-    - convert the list into a dataframe
+
 
 
 
