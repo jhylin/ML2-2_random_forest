@@ -24,9 +24,11 @@ This post was an addition towards the last post on random forest (RF), machine l
 
 ##### **The plan**
 
-*Introducing new packages - chembl_downloader & GHOST paper*
+*Introducing new packages - chembl_downloader, random_froest.py & GHOST paper*
 
-##### **Data source**
+<br>
+
+##### **Data retrieval using chembl_downloader**
 
 Introducing chembl_downloader package to get new dataset 
     - data source thoroughness (ChEMBL version, reproducible data source workflow)
@@ -147,57 +149,70 @@ Minor cleaning/preprocessing as focus is on dealing with imbalanced datasets in 
 
 ```{python}
 # Running preprocess function
+# df_prep = df_ache.apply(preprocess, axis = 1)
+# df_prep.head()
+```
+
+**Little test section for random_forest.py (incomplete, work-in-progress):**
+
+*TODO*: Idea is to remove most function code in the post and save all code as a separate script (avoid repeating code from last few posts).
+
+```{python}
+## Trial mini library of code first
+from random_forest import preprocess, rdkit_2d_descriptors
+```
+
+```{python}
+# Running preprocess function
 df_prep = df_ache.apply(preprocess, axis = 1)
 df_prep.head()
 ```
 
-**Little test section for mini library of code (incomplete, work-in-progress):**
-
-**TODO**: Idea is to remove most function code in the post and save all code as a separate script (avoid repeating code from last few posts).
-
-- main function is to:
-    - calculate RDKit 2D molecular descriptors based on the molecule list
-    - convert the list into a dataframe
-
-
 ```{python}
-## Trial to create a mini library of code first
-
-from random_forest import * 
-```
-
-
-```{python}
-# Create a mol list based on RDKit molecules
-mol_list = df_prep["rdkit_mol"]
-
-# Convert series object into a list
-mol_list = list(mol_list)
+# Running rdkit_2d_descriptors function
+rdkit_2d_descriptors(df_prep)
 ```
 
 ```{python}
-# Calculate RDKit 2D molecular descriptors
-rdkit_mol_ls = [Descriptors.CalcMolDescriptors(mol) for mol in mol_list]
+# def rdkit_2d_descriptors(df):
+#     """
+#     Function to calculate RDKit 2D descriptors for a list of RDKit molecules
 
-# Convert the list of molecules with RDKit 2D descriptors into a dataframe
-df_prep_2d = pd.DataFrame(rdkit_mol_ls)
-print(df_prep_2d.shape)
-df_prep_2d.head()
+#     :param df: an input dataframe containing RDKit molecules
+#     :param mol: RDKit molecules
+#     :return: a dataframe containing RDKit 2D descriptors
+#     """
+
+#     # Create a mol list based on RDKit molecules (series object)
+#     mol_list = df["rdkit_mol"]
+#     # Convert series object into a list
+#     mol_list = list(mol_list)
+
+#     # Calculate RDKit 2D molecular descriptors
+#     rdkit_mol_ls = [Descriptors.CalcMolDescriptors(mol) for mol in mol_list]
+
+#     # Convert the list of molecules with RDKit 2D descriptors into a dataframe
+#     df_prep_2d = pd.DataFrame(rdkit_mol_ls)
+#     #print(df_prep_2d.shape)
+    
+#     return df_prep_2d
 ```
 
 
 
 
+<br>
 
-
-* Model building
+##### **Model building**
 - re-label max phases as binary labels (max phase null/0, max phase 4/1)
 
 - 2 approaches from GHOST paper (main idea was on shifting decision threshold)
     - approach 1 based on RDKit blog post (ref. 41)
     - approach 2 led to Generalised threshold shifting (GHOST) procedure - ghostml code
+    *possible to use only approach 2 ghostml - as both approaches were shown to be performing similarly in the paper*
+
+    - include data splits/threshold shifting method
 
 - RandomForestClassifier() from scikit-learn
 
-* Visualisations
-- ?feature importances or others
+* Visualisations - ?feature importances or others

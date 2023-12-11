@@ -1,8 +1,8 @@
 ## Work-in-progress
 ## Functions:
-# 1) preprocess compounds into RDKit molecules 
-# 2) generate RDKit 2D descriptors
-# 3) convert feature importance array into a dataframe and bar plot
+# 1) preprocess() - preprocess compounds into RDKit molecules 
+# 2) rdkit_2d_descriptors() - generate RDKit 2D descriptors
+# 3) feat_imp_plot() - convert feature importance array into a dataframe and bar plot
 
 from rdkit.Chem import Descriptors
 import datamol as dm
@@ -11,12 +11,10 @@ import seaborn as sns
 
 
 #class preprocess_mol:
-
     # def __init__(self, row) -> None:
-    #     # ?use self.smiles = smiles
-    #     # then generate mols from smiles might be easier
-    #     self.row = pd.DataFrame
-
+        # self.row = pd.DataFrame
+        # ?use self.smiles = smiles
+        # then generate mols from smiles might be easier
 
 
 # disable rdkit messages
@@ -27,9 +25,10 @@ def preprocess(row):
 
     """
     Function to preprocess, fix, standardise and sanitise compounds
+
     :param smiles_column: SMILES column name derived from ChEMBL database from an input dataframe
     :param mol: RDKit molecules
-    :return: Preprocessed RDKit molecules, standardised SMILES, SELFIES, 
+    :return: preprocessed RDKit molecules, standardised SMILES, SELFIES, 
     InChI and InChI keys in the dataframe
     """
 
@@ -63,19 +62,29 @@ def preprocess(row):
     return row
 
 
-def rdkit_2d_descriptors(mol):
-    # list_of_mol = df["smiles_col"] #creates a Series object
-    # list_of_mol = list(list_of_mol) # converts Series into a List object
 
+def rdkit_2d_descriptors(df):
+    """
+    Function to calculate RDKit 2D descriptors for a list of RDKit molecules
+
+    :param df: an input dataframe containing RDKit molecules
+    :param mol: RDKit molecules
+    :return: a dataframe containing RDKit 2D descriptors
+    """
+
+    # Create a mol list based on RDKit molecules (series object)
+    mol_list = df["rdkit_mol"]
+    # Convert series object into a list
+    mol_list = list(mol_list)
+
+    # Calculate RDKit 2D molecular descriptors
+    rdkit_mol_ls = [Descriptors.CalcMolDescriptors(mol) for mol in mol_list]
+
+    # Convert the list of molecules with RDKit 2D descriptors into a dataframe
+    df_prep_2d = pd.DataFrame(rdkit_mol_ls)
+    #print(df_prep_2d.shape)
     
-    # Run descriptor calculations on mol_list (created earlier)
-    # and save as a new list
-    mol_rdkit_ls = [Descriptors.CalcMolDescriptors(mol) for mol in mol_list]
-
-    # Convert the list into a dataframe
-    df_rdkit_2d = pd.DataFrame(mol_rdkit_ls)
-    print(df_rdkit_2d.shape)
-    df_rdkit_2d.head(3)
+    return df_prep_2d
 
     
 
@@ -83,12 +92,14 @@ def feat_imp_plot(feat_imp_array, X_df):
 
     """
     Function to convert feature importance array into a dataframe, 
-    which is then used to plot a bar graph to show the feature importance ranking 
-    in the random forest (RF) model. 
+    which is then used to plot a bar graph showing feature importance ranking 
+    in the random forest (RF) model
     
-    :param feat_imp_array: the array obtained from the feature_importances_ attribute
-    or permutation_importance function in scikit-learn, after having a RF model fitted
-    :param X_df: the dataframe for the X variable, where the feature column names will be used in the plot
+    :param feat_imp_array: array obtained from feature_importances_ attribute
+    or permutation_importance function in scikit-learn
+
+    :param X_df: feature column names from X variable dataframe to be used in the plot
+
     :return: a barplot showing a feature importances ranking in the RF model
     """
 
