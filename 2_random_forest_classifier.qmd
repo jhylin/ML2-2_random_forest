@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2023-12-8'
+date: '2023-12-12'
 draft: true
 categories: 
     - Machine learning projects
@@ -44,6 +44,8 @@ import chembl_downloader
 from chembl_downloader import latest, queries, query
 import datamol as dm
 from rdkit.Chem import Descriptors
+
+from sklearn.ensemble import RandomForestClassifier
 ```
 
 ```{python}
@@ -153,7 +155,7 @@ Minor cleaning/preprocessing as focus is on dealing with imbalanced datasets in 
 # df_prep.head()
 ```
 
-**Little test section for random_forest.py (incomplete, work-in-progress):**
+**Little test section for random_forest.py (work-in-progress):**
 
 *TODO*: Idea is to remove most function code in the post and save all code as a separate script (avoid repeating code from last few posts).
 
@@ -174,37 +176,21 @@ rdkit_2d_descriptors(df_prep)
 ```
 
 ```{python}
-# def rdkit_2d_descriptors(df):
-#     """
-#     Function to calculate RDKit 2D descriptors for a list of RDKit molecules
 
-#     :param df: an input dataframe containing RDKit molecules
-#     :param mol: RDKit molecules
-#     :return: a dataframe containing RDKit 2D descriptors
-#     """
-
-#     # Create a mol list based on RDKit molecules (series object)
-#     mol_list = df["rdkit_mol"]
-#     # Convert series object into a list
-#     mol_list = list(mol_list)
-
-#     # Calculate RDKit 2D molecular descriptors
-#     rdkit_mol_ls = [Descriptors.CalcMolDescriptors(mol) for mol in mol_list]
-
-#     # Convert the list of molecules with RDKit 2D descriptors into a dataframe
-#     df_prep_2d = pd.DataFrame(rdkit_mol_ls)
-#     #print(df_prep_2d.shape)
-    
-#     return df_prep_2d
 ```
-
-
-
 
 <br>
 
 ##### **Model building**
-- re-label max phases as binary labels (max phase null/0, max phase 4/1)
+
+- aim to model and classify the max phase of ChEMBL small molecules (max phase 4 or not)
+    - *target*: max_phase
+    - *features*: various RDKit 2D descriptors
+
+- (optional) re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
+    - may not need to do this, as can be more broadly about finding important features targeting towards max_phase in general (ranges from unassigned, 0, 1, 2, 3, 4)
+
+- train/test splits using ghostml (imbalanced dataset of actives and inactives)
 
 - 2 approaches from GHOST paper (main idea was on shifting decision threshold)
     - approach 1 based on RDKit blog post (ref. 41)
@@ -213,6 +199,6 @@ rdkit_2d_descriptors(df_prep)
 
     - include data splits/threshold shifting method
 
-- RandomForestClassifier() from scikit-learn
+- Using same set of training data to train RandomForestClassifier() in scikit-learn 
 
 * Visualisations - ?feature importances or others
