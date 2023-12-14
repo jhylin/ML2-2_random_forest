@@ -176,6 +176,7 @@ rdkit_2d_descriptors(df_prep)
 ```
 
 ```{python}
+# Merge dataframes
 
 ```
 
@@ -183,22 +184,19 @@ rdkit_2d_descriptors(df_prep)
 
 ##### **Model building**
 
-- aim to model and classify the max phase of ChEMBL small molecules (max phase 4 or not)
+* aim to model and classify the max phase of ChEMBL small molecules (max phase 4 or not)
     - *target*: max_phase
-    - *features*: various RDKit 2D descriptors
+    - *features*: various RDKit 2D descriptors (RDKit2D)
 
-- (optional) re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
-    - may not need to do this, as can be more broadly about finding important features targeting towards max_phase in general (ranges from unassigned, 0, 1, 2, 3, 4)
+1. re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
 
-- train/test splits using ghostml (imbalanced dataset of actives and inactives)
+2. train RF classifier model as usual (imbalanced dataset of actives and inactives) - Using similar set of training data as last post but not exactly the same as using chembl_downloader this time to extract data
 
-- 2 approaches from GHOST paper (main idea was on shifting decision threshold)
+3. Two approaches from GHOST paper (main idea was shifting decision threshold)
     - approach 1 based on RDKit blog post (ref. 41)
     - approach 2 led to Generalised threshold shifting (GHOST) procedure - ghostml code
     *possible to use only approach 2 ghostml - as both approaches were shown to be performing similarly in the paper*
 
-    - include data splits/threshold shifting method
+4. shift decision threshold using ghostml - postprocessing way 
 
-- Using same set of training data to train RandomForestClassifier() in scikit-learn 
-
-* Visualisations - ?feature importances or others
+5. Visualisations - confusion matrix with precision scores
