@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2023-12-12'
+date: '2023-12-14'
 draft: true
 categories: 
     - Machine learning projects
@@ -24,7 +24,7 @@ This post was an addition towards the last post on random forest (RF), machine l
 
 ##### **The plan**
 
-*Introducing new packages - chembl_downloader, random_froest.py & GHOST paper*
+*Introducing new packages - chembl_downloader, random_forest.py & GHOST paper*
 
 <br>
 
@@ -190,13 +190,16 @@ rdkit_2d_descriptors(df_prep)
 
 1. re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
 
-2. train RF classifier model as usual (imbalanced dataset of actives and inactives) - Using similar set of training data as last post but not exactly the same as using chembl_downloader this time to extract data
+2. train RF classifier model as usual (focus is on an imbalanced dataset of actives and inactives) - using similar set of training data as last post but not exactly the same as using chembl_downloader this time to extract data
 
-3. Two approaches from GHOST paper (main idea was shifting decision threshold)
+3. get the prediction probabilities of the RF classifier on testing data & show confusion matrix with classification metrics
+
+4. two approaches from GHOST paper (main idea was optimising and shifting decision threshold)
     - approach 1 based on RDKit blog post (ref. 41)
     - approach 2 led to Generalised threshold shifting (GHOST) procedure - ghostml code
-    *possible to use only approach 2 ghostml - as both approaches were shown to be performing similarly in the paper*
+    *using only approach 2 ghostml - as both approaches were shown to be performing similarly in the paper and also approach 1 was already described in a RDKit blog post*
 
-4. shift decision threshold using ghostml - postprocessing way 
-
-5. Visualisations - confusion matrix with precision scores
+5. shift decision threshold using ghostml, a postprocessing way (note: last post used re-sampling method in a preprocessing way)
+    - extract the prediction probabilities from the RF classifier trained model
+    - optimise the decision threshold using ghostml via testing various thresholds (in spaces of 0.05 with range of 0.05 to 0.5) - to search for the threshold that has maximised the Cohen's kappa
+    - calculate confusion matrix and classification metrics based on the optimised decision threshold
