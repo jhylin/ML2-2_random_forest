@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2023-12-14'
+date: '2023-12-15'
 draft: true
 categories: 
     - Machine learning projects
@@ -44,7 +44,6 @@ import chembl_downloader
 from chembl_downloader import latest, queries, query
 import datamol as dm
 from rdkit.Chem import Descriptors
-
 from sklearn.ensemble import RandomForestClassifier
 ```
 
@@ -70,6 +69,7 @@ SELECT
     ASSAYS.chembl_id              AS assay_chembl_id,
     TARGET_DICTIONARY.target_type,
     TARGET_DICTIONARY.tax_id,
+    TARGET_DICTIONARY.chembl_id,
     COMPOUND_STRUCTURES.canonical_smiles,
     MOLECULE_DICTIONARY.chembl_id AS molecule_chembl_id,
     MOLECULE_DICTIONARY.max_phase,
@@ -86,7 +86,6 @@ WHERE TARGET_DICTIONARY.chembl_id = 'CHEMBL220'
 """
 
 df = chembl_downloader.query(sql)
-#df.head()
 ```
 
 ```{python}
@@ -99,68 +98,28 @@ df.to_csv("chembl_d_ache", sep=",", index=False)
 ```
 
 ```{python}
+# Load dataset from saved .csv file
 df_ache = pd.read_csv("chembl_d_ache")
 print(df_ache.shape)
 df_ache.head()
+```
+
+```{python}
+#df.value_counts("chembl_id")
 ```
 
 <br>
 
 ##### **Some data cleaning**
 
-Minor cleaning/preprocessing as focus is on dealing with imbalanced datasets in RF classifier.
+Minor cleaning and preprocessing as focus this time was on dealing with imbalanced datasets in RF classifier.
+
+###### **random_forest.py (work-in-progress):**
+
+The idea was to remove most function code in the post and save all code as a separate script (avoid repeating code from last few posts).
 
 ```{python}
-## Generate RDKit molecules based on canonical_smiles column
-
-# # Original preprocess function
-# smiles_column = "canonical_smiles"
-
-# # disable rdkit messages
-# dm.disable_rdkit_log()
-
-# # preprocess function to sanitise compounds - adapted from datamol.io
-# def preprocess(row):
-        
-#     # Convert each compound to a RDKit molecule in the smiles column
-#     mol = dm.to_mol(row[smiles_column], ordered=True)
-#     # Fix common errors in the molecules
-#     mol = dm.fix_mol(mol)
-#     # Sanitise the molecules 
-#     mol = dm.sanitize_mol(mol, sanifix=True, charge_neutral=False)
-#     # Standardise the molecules
-#     mol = dm.standardize_mol(
-    #     mol,
-    #     # Switch on to disconnect metal ions
-    #     disconnect_metals=True,
-    #     normalize=True,
-    #     reionize=True,
-    #     # Switch on "uncharge" to neutralise charges
-    #     uncharge=True,
-    #     # Taking care of stereochemistries of compounds
-    #     stereo=True,
-    # )
-
-    # row["rdkit_mol"] = dm.to_mol(mol)
-    # row["standard_smiles"] = dm.standardize_smiles(dm.to_smiles(mol))
-    #row["selfies"] = dm.to_selfies(mol)
-    #row["inchi"] = dm.to_inchi(mol)
-    #row["inchikey"] = dm.to_inchikey(mol)
-    # return row
-```
-
-```{python}
-# Running preprocess function
-# df_prep = df_ache.apply(preprocess, axis = 1)
-# df_prep.head()
-```
-
-**Little test section for random_forest.py (work-in-progress):**
-
-*TODO*: Idea is to remove most function code in the post and save all code as a separate script (avoid repeating code from last few posts).
-
-```{python}
-## Trial mini library of code first
+## Trial random_forest.py script
 from random_forest import preprocess, rdkit_2d_descriptors
 ```
 
@@ -172,11 +131,43 @@ df_prep.head()
 
 ```{python}
 # Running rdkit_2d_descriptors function
-rdkit_2d_descriptors(df_prep)
+df_2d = rdkit_2d_descriptors(df_prep)
 ```
 
 ```{python}
-# Merge dataframes
+df_2d
+```
+
+```{python}
+# Merge dataframes df_prep & df_2d via index
+df_merge = pd.merge(
+    df_prep[["max_phase", "molecule_chembl_id"]],
+    df_2d,
+    left_index=True,
+    right_index=True
+)
+```
+
+```{python}
+print(df_merge.shape)
+df_merge.head()
+```
+
+Different spreads of max phases as the SQL query used IC50 (whereas last post used Ki). There were more max phase 4 compounds than null compounds.
+
+```{python}
+# Find out counts of each max phase
+df_merge.value_counts("max_phase")
+```
+
+```{python}
+# Try searching for the chembl_id of the 10 max phase 4 compounds from last post in df_merge (or at least to contain the common AChE inhibitors e.g. galantamine, donepezil etc.)
+
+
+# Aiming to use imbalanced dataset (inactives > actives)
+
+
+# re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
 
 ```
 
