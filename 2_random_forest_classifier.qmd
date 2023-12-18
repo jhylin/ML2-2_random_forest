@@ -125,6 +125,7 @@ from random_forest import preprocess, rdkit_2d_descriptors
 
 ```{python}
 # Running preprocess function
+df_ache = df_ache.copy()
 df_prep = df_ache.apply(preprocess, axis = 1)
 df_prep.head()
 ```
@@ -191,24 +192,40 @@ df_merge_new.head()
 ```
 
 ```{python}
-# Fill NaN in max phase column
-```
-
-```{python}
 # Previously used 10 max phase 4 compounds were found in df_merge_new
-df_merge_new.loc[df_merge_new["molecule_chembl_id"].isin(list_mp4)]
+df_mp4 = df_merge_new.loc[df_merge_new["molecule_chembl_id"].isin(list_mp4)]
 ```
 
 ```{python}
-# Not showing no. of NaN (rest ok)
+print(df_mp4.shape)
+```
+
+```{python}
+# Compounds with max phase 0 not shown
 df_merge_new.value_counts("max_phase")
 ```
 
 ```{python}
-# Aiming to use imbalanced dataset (inactives > actives)
+print(df_merge_new.shape)
+```
+
+```{python}
+df_merge_new.fillna("null")
+```
+
+```{python}
+# Select all max phase null compounds
+df_null = df_merge_new[df_merge_new["max_phase"] == "null"]
+```
+
+```{python}
+## Aiming to use imbalanced dataset (inactives > actives)
+
+# Use df_mp4 as training set (10 compounds)
+# Use df_null as testing set (5256 compounds)
 
 
-# re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
+## re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
 
 ```
 
