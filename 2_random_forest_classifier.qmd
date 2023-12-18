@@ -166,14 +166,45 @@ df_merge.value_counts("max_phase")
 # Previously used 10 max phase 4 compounds
 list_mp4 = ["CHEMBL95", "CHEMBL1128", "CHEMBL640", "CHEMBL502", "CHEMBL481", "CHEMBL360055", "CHEMBL1025", "CHEMBL659", "CHEMBL1200970", "CHEMBL1677"]
 
+# donepezil & galantamine
 # list_mp4 = ["CHEMBL502", "CHEMBL659"]
 
+# Series.isin
 # df2.loc[df2['C'].isin(name)]
-df_merge.loc[df_merge["max_phase"].isin(list_mp4)]
 
+# Search for the compounds in list_mp4 in df_merge's "molecule_chembl_id" column
+df_prev = df_merge.loc[df_merge["molecule_chembl_id"].isin(list_mp4)]
+# Many duplicates
+```
 
+```{python}
+# Some compounds with duplicates
+print(df_prev.shape)
+df_prev.value_counts("molecule_chembl_id")
+```
 
+```{python}
+# Dropping duplicated compound chembl ids
+df_merge_new = df_merge.drop_duplicates(subset=["molecule_chembl_id"], keep="first")
+print(df_merge_new.shape)
+df_merge_new.head()
+```
 
+```{python}
+# Fill NaN in max phase column
+```
+
+```{python}
+# Previously used 10 max phase 4 compounds were found in df_merge_new
+df_merge_new.loc[df_merge_new["molecule_chembl_id"].isin(list_mp4)]
+```
+
+```{python}
+# Not showing no. of NaN (rest ok)
+df_merge_new.value_counts("max_phase")
+```
+
+```{python}
 # Aiming to use imbalanced dataset (inactives > actives)
 
 
