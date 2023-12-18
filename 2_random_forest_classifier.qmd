@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2023-12-15'
+date: '2023-12-18'
 draft: true
 categories: 
     - Machine learning projects
@@ -162,6 +162,16 @@ df_merge.value_counts("max_phase")
 
 ```{python}
 # Try searching for the chembl_id of the 10 max phase 4 compounds from last post in df_merge (or at least to contain the common AChE inhibitors e.g. galantamine, donepezil etc.)
+
+# Previously used 10 max phase 4 compounds
+list_mp4 = ["CHEMBL95", "CHEMBL1128", "CHEMBL640", "CHEMBL502", "CHEMBL481", "CHEMBL360055", "CHEMBL1025", "CHEMBL659", "CHEMBL1200970", "CHEMBL1677"]
+
+# list_mp4 = ["CHEMBL502", "CHEMBL659"]
+
+# df2.loc[df2['C'].isin(name)]
+df_merge.loc[df_merge["max_phase"].isin(list_mp4)]
+
+
 
 
 # Aiming to use imbalanced dataset (inactives > actives)
