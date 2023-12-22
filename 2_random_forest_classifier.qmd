@@ -136,9 +136,6 @@ df_prep.head()
 ## Generate RDKit2D descriptors/fingerprints
 # Running rdkit_2d_descriptors function
 df_2d = rdkit_2d_descriptors(df_prep)
-```
-
-```{python}
 df_2d
 ```
 
@@ -179,9 +176,7 @@ list_mp4 = ["CHEMBL95", "CHEMBL1128", "CHEMBL640", "CHEMBL502", "CHEMBL481", "CH
 # Search for the compounds in list_mp4 within df_merge's "molecule_chembl_id" column
 df_prev = df_merge.loc[df_merge["molecule_chembl_id"].isin(list_mp4)]
 # Many duplicates
-```
 
-```{python}
 # Some compounds with duplicates
 print(df_prev.shape)
 df_prev.value_counts("molecule_chembl_id")
@@ -197,9 +192,7 @@ df_merge_new.head()
 ```{python}
 # Previously used 10 max phase 4 compounds were found in df_merge_new
 df_mp4 = df_merge_new.loc[df_merge_new["molecule_chembl_id"].isin(list_mp4)]
-```
 
-```{python}
 print(df_mp4.shape)
 ```
 
@@ -213,16 +206,16 @@ print(df_merge_new.shape)
 ```
 
 ```{python}
-df_merge_new = df_merge_new.fillna("null")
-```
+#df_merge_new = df_merge_new.fillna("null")
+df_merge_new = df_merge_new.fillna(0)
 
-```{python}
 df_merge_new
 ```
 
 ```{python}
 # Select all max phase null compounds
-df_null = df_merge_new[df_merge_new["max_phase"] == "null"]
+# df_null = df_merge_new[df_merge_new["max_phase"] == "null"]
+df_null = df_merge_new[df_merge_new["max_phase"] == 0]
 ```
 
 ```{python}
@@ -240,10 +233,22 @@ df_mp4
 # Use df_mp4 as training set (10 compounds)
 # Use df_null as testing set (5256 compounds)
 
-## re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1)
+## re-label max phases as binary labels 
+# (e.g. max phase null as 0, max phase 4 as 1)
 
-# replace or iloc/loc
+# Using pd.DataFrame.assign to add a new column
+# to re-label max_phase 4 into "1"
 
+df_mp4_lb = df_mp4.assign(max_phase_lb = df_mp4["max_phase"] / 4)
+
+# Using pd.DataFrame.pop() & insert()
+# to shift last column of re-labelled max_phase 4
+# to first column
+
+first_col = df_mp4_lb.pop("max_phase_lb")
+df_mp4_lb.insert(0, "max_phase_lb", first_col)
+
+df_mp4_lb
 ```
 
 <br>
@@ -257,6 +262,13 @@ df_mp4
 1. re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
 
 2. train RF classifier model as usual (focus is on an imbalanced dataset of actives and inactives) - using same set of training data as last post (on the same 10 compounds)
+
+```{python}
+# Using RandomForestClassifier() to train model
+
+
+
+```
 
 3. get the prediction probabilities of the RF classifier on testing data & show confusion matrix with classification metrics
 
