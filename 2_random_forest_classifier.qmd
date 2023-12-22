@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2023-12-18'
+date: '2023-12-22'
 draft: true
 categories: 
     - Machine learning projects
@@ -105,6 +105,7 @@ df_ache.head()
 ```
 
 ```{python}
+# Check it was only AChE
 #df.value_counts("chembl_id")
 ```
 
@@ -124,13 +125,15 @@ from random_forest import preprocess, rdkit_2d_descriptors
 ```
 
 ```{python}
-# Running preprocess function
+## Preprocess/standardise molecules
+# Running preprocess function 
 df_ache = df_ache.copy()
 df_prep = df_ache.apply(preprocess, axis = 1)
 df_prep.head()
 ```
 
 ```{python}
+## Generate RDKit2D descriptors/fingerprints
 # Running rdkit_2d_descriptors function
 df_2d = rdkit_2d_descriptors(df_prep)
 ```
@@ -154,7 +157,7 @@ print(df_merge.shape)
 df_merge.head()
 ```
 
-Different spreads of max phases as the SQL query used IC50 (whereas last post used Ki). There were more max phase 4 compounds than null compounds.
+Different spreads of max phases as the SQL query mainly used IC50 (whereas last post was strictly limited to Ki, done via ChEMBL web resource client). Other reason was that in the decision tree series, I attempted data preprocessing at a larger scale (which eliminated some data). So, it appeared that there were more max phase 4 compounds here than last time (Note: null compounds were not shown in the value counts here as it was labelled as "NaN", but it should be the largest portion of max phase in the data).
 
 ```{python}
 # Find out counts of each max phase
@@ -170,10 +173,10 @@ list_mp4 = ["CHEMBL95", "CHEMBL1128", "CHEMBL640", "CHEMBL502", "CHEMBL481", "CH
 # donepezil & galantamine
 # list_mp4 = ["CHEMBL502", "CHEMBL659"]
 
-# Series.isin
+# using Series.isin
 # df2.loc[df2['C'].isin(name)]
 
-# Search for the compounds in list_mp4 in df_merge's "molecule_chembl_id" column
+# Search for the compounds in list_mp4 within df_merge's "molecule_chembl_id" column
 df_prev = df_merge.loc[df_merge["molecule_chembl_id"].isin(list_mp4)]
 # Many duplicates
 ```
@@ -210,7 +213,11 @@ print(df_merge_new.shape)
 ```
 
 ```{python}
-df_merge_new.fillna("null")
+df_merge_new = df_merge_new.fillna("null")
+```
+
+```{python}
+df_merge_new
 ```
 
 ```{python}
@@ -219,13 +226,23 @@ df_null = df_merge_new[df_merge_new["max_phase"] == "null"]
 ```
 
 ```{python}
+print(df_null.shape)
+df_null.head()
+```
+
+```{python}
+df_mp4
+```
+
+```{python}
 ## Aiming to use imbalanced dataset (inactives > actives)
 
 # Use df_mp4 as training set (10 compounds)
 # Use df_null as testing set (5256 compounds)
 
+## re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1)
 
-## re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
+# replace or iloc/loc
 
 ```
 
@@ -239,7 +256,7 @@ df_null = df_merge_new[df_merge_new["max_phase"] == "null"]
 
 1. re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
 
-2. train RF classifier model as usual (focus is on an imbalanced dataset of actives and inactives) - using similar set of training data as last post but not exactly the same as using chembl_downloader this time to extract data
+2. train RF classifier model as usual (focus is on an imbalanced dataset of actives and inactives) - using same set of training data as last post (on the same 10 compounds)
 
 3. get the prediction probabilities of the RF classifier on testing data & show confusion matrix with classification metrics
 
