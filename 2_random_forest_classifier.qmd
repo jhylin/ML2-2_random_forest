@@ -45,6 +45,7 @@ from chembl_downloader import latest, queries, query
 import datamol as dm
 from rdkit.Chem import Descriptors
 from sklearn.ensemble import RandomForestClassifier
+from rdkit.Chem import PandasTools
 ```
 
 ```{python}
@@ -130,6 +131,28 @@ from random_forest import preprocess, rdkit_2d_descriptors
 df_ache = df_ache.copy()
 df_prep = df_ache.apply(preprocess, axis = 1)
 df_prep.head()
+```
+
+Introducing new package, scikit_mol, which originated from 2022 RDKit UGM hackathon.
+
+GitHub Repo: https://github.com/EBjerrum/scikit-mol
+Blog post:
+
+```{python}
+# Quick simple way to check for missing SMILES
+print(f'Dataset contains {df_prep.standard_smiles.isna().sum()} unparsable mols')
+```
+
+```{python}
+# Checking for invalid SMILES
+from scikit_mol.utilities import CheckSmilesSanitazion
+smileschecker = CheckSmilesSanitazion()
+smileschecker.sanitize(list(df_prep.standard_smiles))
+```
+
+```{python}
+# Show SMILES errors
+smileschecker.errors
 ```
 
 ```{python}
@@ -271,7 +294,7 @@ X_train
 # Target variable in training data
 y_train = df_mp4_lb[["max_phase_lb"]]
 y_train = y_train.to_numpy()
-# Change column-vector y into a 1D array (changing shape)
+# Change column-vector y into a 1D array (changing shape) - ndarray.ravel()
 y_train = y_train.ravel()
 ```
 
