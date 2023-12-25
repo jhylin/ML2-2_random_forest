@@ -24,7 +24,7 @@ This post was an addition towards the last post on random forest (RF), machine l
 
 ##### **The plan**
 
-*Introducing new packages - chembl_downloader, random_forest.py & GHOST paper*
+*Introducing new packages/scripts - chembl_downloader, random_forest.py, scikit_mol & ghostml*
 
 <br>
 
@@ -45,7 +45,8 @@ from chembl_downloader import latest, queries, query
 import datamol as dm
 from rdkit.Chem import Descriptors
 from sklearn.ensemble import RandomForestClassifier
-from rdkit.Chem import PandasTools
+#from rdkit.Chem import PandasTools
+from scikit_mol.utilities import CheckSmilesSanitazion
 ```
 
 ```{python}
@@ -133,27 +134,29 @@ df_prep = df_ache.apply(preprocess, axis = 1)
 df_prep.head()
 ```
 
-Introducing new package, scikit_mol, which originated from 2022 RDKit UGM hackathon.
+Introducing a new package, scikit_mol, which originated from 2022 RDKit UGM hackathon. The blog post link below elaborated further about the package.
 
 GitHub Repo: https://github.com/EBjerrum/scikit-mol
-Blog post:
+Blog post: https://www.cheminformania.com/scikit-mol-easy-embedding-of-rdkit-into-scikit-learn/
 
 ```{python}
 # Quick simple way to check for missing SMILES
 print(f'Dataset contains {df_prep.standard_smiles.isna().sum()} unparsable mols')
 ```
 
-```{python}
-# Checking for invalid SMILES
-from scikit_mol.utilities import CheckSmilesSanitazion
-smileschecker = CheckSmilesSanitazion()
-smileschecker.sanitize(list(df_prep.standard_smiles))
-```
+No unparsable molecules.
 
 ```{python}
-# Show SMILES errors
+# Checking for invalid SMILES
+smileschecker = CheckSmilesSanitazion()
+
+smileschecker.sanitize(list(df_prep.standard_smiles))
+
+# Showing SMILES errors
 smileschecker.errors
 ```
+
+Confirmed that there were no errors in SMILES.
 
 ```{python}
 ## Generate RDKit2D descriptors/fingerprints
