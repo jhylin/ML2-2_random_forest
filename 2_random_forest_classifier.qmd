@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2023-12-22'
+date: '2023-12-25'
 draft: true
 categories: 
     - Machine learning projects
@@ -202,10 +202,6 @@ df_merge_new.value_counts("max_phase")
 ```
 
 ```{python}
-print(df_merge_new.shape)
-```
-
-```{python}
 #df_merge_new = df_merge_new.fillna("null")
 df_merge_new = df_merge_new.fillna(0)
 
@@ -214,7 +210,6 @@ df_merge_new
 
 ```{python}
 # Select all max phase null compounds
-# df_null = df_merge_new[df_merge_new["max_phase"] == "null"]
 df_null = df_merge_new[df_merge_new["max_phase"] == 0]
 ```
 
@@ -230,21 +225,16 @@ df_mp4
 ```{python}
 ## Aiming to use imbalanced dataset (inactives > actives)
 
-# Use df_mp4 as training set (10 compounds)
-# Use df_null as testing set (5256 compounds)
-
 ## re-label max phases as binary labels 
 # (e.g. max phase null as 0, max phase 4 as 1)
 
 # Using pd.DataFrame.assign to add a new column
 # to re-label max_phase 4 into "1"
-
 df_mp4_lb = df_mp4.assign(max_phase_lb = df_mp4["max_phase"] / 4)
 
 # Using pd.DataFrame.pop() & insert()
 # to shift last column of re-labelled max_phase 4
 # to first column
-
 first_col = df_mp4_lb.pop("max_phase_lb")
 df_mp4_lb.insert(0, "max_phase_lb", first_col)
 
@@ -263,11 +253,53 @@ df_mp4_lb
 
 2. train RF classifier model as usual (focus is on an imbalanced dataset of actives and inactives) - using same set of training data as last post (on the same 10 compounds)
 
+
+* Training dataset
+
+```{python}
+print(df_mp4_lb.shape)
+```
+
+```{python}
+# Selecting training data via data positions using iloc
+X_train = df_mp4_lb.iloc[:, 3:]
+X_train = X_train.to_numpy()
+X_train
+```
+
+```{python}
+# Target variable in training data
+y_train = df_mp4_lb[["max_phase_lb"]]
+y_train = y_train.to_numpy()
+# Change column-vector y into a 1D array (changing shape)
+y_train = y_train.ravel()
+```
+
+* Testing dataset
+
+```{python}
+print(df_null.shape)
+```
+
+```{python}
+# Testing data using df_null dataset
+X_test = df_null.iloc[:, 2:]
+X_test
+```
+
+```{python}
+# Use df_mp4 as training set (10 compounds)
+# Use df_null as testing set (5256 compounds)
+
+```
+
+* Training RF classifier model
+
 ```{python}
 # Using RandomForestClassifier() to train model
+rfc = RandomForestClassifier(max_depth=3, random_state=1, max_features="sqrt")
 
-
-
+rfc.fit(X_train, y_train)
 ```
 
 3. get the prediction probabilities of the RF classifier on testing data & show confusion matrix with classification metrics
