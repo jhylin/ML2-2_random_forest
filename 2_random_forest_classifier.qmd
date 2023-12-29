@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2023-12-25'
+date: '2023-12-29'
 draft: true
 categories: 
     - Machine learning projects
@@ -45,9 +45,12 @@ from chembl_downloader import latest, queries, query
 import datamol as dm
 from rdkit.Chem import Descriptors
 from sklearn.ensemble import RandomForestClassifier
+from sklearn import metrics
 #from rdkit.Chem import PandasTools
 from scikit_mol.utilities import CheckSmilesSanitazion
 ```
+
+*chembl_downloader package*
 
 ```{python}
 # Show the latest version of ChEMBL used
@@ -144,7 +147,7 @@ Blog post: https://www.cheminformania.com/scikit-mol-easy-embedding-of-rdkit-int
 print(f'Dataset contains {df_prep.standard_smiles.isna().sum()} unparsable mols')
 ```
 
-No unparsable molecules.
+No unparsable (or missing) molecules.
 
 ```{python}
 # Checking for invalid SMILES
@@ -206,9 +209,7 @@ df_prev = df_merge.loc[df_merge["molecule_chembl_id"].isin(list_mp4)]
 # Some compounds with duplicates
 print(df_prev.shape)
 df_prev.value_counts("molecule_chembl_id")
-```
 
-```{python}
 # Dropping duplicated compound chembl ids
 df_merge_new = df_merge.drop_duplicates(subset=["molecule_chembl_id"], keep="first")
 print(df_merge_new.shape)
@@ -234,12 +235,11 @@ df_merge_new = df_merge_new.fillna(0)
 df_merge_new
 ```
 
+---Previous data split begins---
+
 ```{python}
 # Select all max phase null compounds
 df_null = df_merge_new[df_merge_new["max_phase"] == 0]
-```
-
-```{python}
 print(df_null.shape)
 df_null.head()
 ```
@@ -258,14 +258,48 @@ df_mp4
 # to re-label max_phase 4 into "1"
 df_mp4_lb = df_mp4.assign(max_phase_lb = df_mp4["max_phase"] / 4)
 
+# Using df_merge_new
+# df_merge_new = df_merge_new.assign(max_phase_lb = df_merge_new["max_phase"] / 4)
+
 # Using pd.DataFrame.pop() & insert()
 # to shift last column of re-labelled max_phase 4
 # to first column
 first_col = df_mp4_lb.pop("max_phase_lb")
 df_mp4_lb.insert(0, "max_phase_lb", first_col)
 
+# first_col = df_merge_new.pop("max_phase_lb")
+# df_merge_new.insert(0, "max_phase_lb", first_col)
+
 df_mp4_lb
+# df_merge_new
 ```
+
+```{python}
+# If carrying out assign() /4 on column max_phase on df_merge_new
+# It divided every max phase values by 4!! -> weird max phase values now
+# df_merge_new.value_counts("max_phase_lb")
+```
+
+**TODO**
+
+```{python}
+# Also create a new column max_phase_lb column for df_null
+# for df merging after
+
+```
+
+```{python}
+# Combine df_mp4_lb & df_null
+
+# df_full = pd.merge(
+#     df_null[["max_phase_lb"]],
+#     df_mp4_lb,
+#     left_index=True,
+#     right_index=True
+# )
+```
+
+---Previous data split ends---
 
 <br>
 
@@ -285,6 +319,17 @@ df_mp4_lb
 ```{python}
 print(df_mp4_lb.shape)
 ```
+
+**TODO**:
+**Combine df_null & df_mp4_lb (= df_full) and use train_test_split() at test_size = 0.2**
+
+```{python}
+# Do train_test_split() on df_merge_new/df_full (mixture of max_phase 0 and 1)
+
+```
+
+
+---Previous data splits into arrays begins---
 
 ```{python}
 # Selecting training data via data positions using iloc
@@ -310,25 +355,59 @@ print(df_null.shape)
 ```{python}
 # Testing data using df_null dataset
 X_test = df_null.iloc[:, 2:]
+X_test = X_test.to_numpy()
 X_test
 ```
 
 ```{python}
-# Use df_mp4 as training set (10 compounds)
-# Use df_null as testing set (5256 compounds)
-
+# Define y_test
+y_test = df_null.iloc[:,0]
+y_test = y_test.to_numpy()
+# y_test = y_test.ravel()
 ```
+
+---Previous data splits into arrays ends---
+
+* Use df_mp4 as training set (10 compounds)
+* Use df_null as testing set (5256 compounds)
 
 * Training RF classifier model
 
 ```{python}
+# Ref notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb
+
 # Using RandomForestClassifier() to train model
-rfc = RandomForestClassifier(max_depth=3, random_state=1, max_features="sqrt")
+rfc = RandomForestClassifier(max_depth=3, random_state=1, max_features="sqrt", oob_score=True)
 
 rfc.fit(X_train, y_train)
 ```
 
-3. get the prediction probabilities of the RF classifier on testing data & show confusion matrix with classification metrics
+3. get the prediction probabilities on the testing data & show confusion matrix with classification metrics
+
+```{python}
+test_probs = rfc.predict_proba(X_test)
+```
+
+```{python}
+# To avoid re-inventing the wheel, the following function code for calculating the metrics of the RF model was adapted from Landrum et al., from this notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb
+
+def calc_metrics(labels_test, test_probs, threshold = 0.5):
+    scores = [1 if x>=threshold else 0 for x in test_probs]
+    auc = metrics.roc_auc_score(labels_test, test_probs)
+    kappa = metrics.cohen_kappa_score(labels_test,scores)
+    confusion = metrics.confusion_matrix(labels_test,scores, labels=list(set(labels_test)))
+    print('thresh: %.2f, kappa: %.3f, AUC test-set: %.3f'%(threshold, kappa, auc))
+    print(confusion)
+    print(metrics.classification_report(labels_test,scores))
+    return 
+```
+
+```{python}
+# Problem with y_test - only one label in it (1 only), likely needs binary labels (0 & 1)
+# needed for roc_auc_score
+
+calc_metrics(y_test, test_probs, threshold = 0.5)
+```
 
 4. two approaches from GHOST paper (main idea was optimising and shifting decision threshold)
     - approach 1 based on RDKit blog post (ref. 41)
