@@ -315,27 +315,17 @@ df_full
 
 2. train RF classifier model as usual (focus is on an imbalanced dataset of actives and inactives) - using same set of training data as last post (on the same 10 compounds)
 
+---Previous data splits into arrays begins---
+
 * Training dataset
 
 ```{python}
-print(df_mp4_lb.shape)
-```
-
-**TODO**:
-**use train_test_split() at test_size = 0.2**
-
-```{python}
-# Do train_test_split() on df_full (mixture of max_phase 0 and 1)
-
-```
-
----Previous data splits into arrays begins---
-
-```{python}
 # Selecting training data via data positions using iloc
-X_train = df_mp4_lb.iloc[:, 3:]
-X_train = X_train.to_numpy()
-X_train
+# X_train = df_mp4_lb.iloc[:, 3:]
+# X_train = X_train.to_numpy()
+# X_train
+
+X = df_full.iloc[:, 3:]
 ```
 
 ```{python}
@@ -368,6 +358,16 @@ y_test = y_test.to_numpy()
 
 ---Previous data splits into arrays ends---
 
+**TODO**:
+
+**use train_test_split() at test_size = 0.2**
+
+```{python}
+# Do train_test_split() on df_full (mixture of max_phase 0 and 1)
+X_train, X_test, y_train, y_test = train_test_split()
+
+```
+
 * Use df_mp4 as training set (10 compounds)
 * Use df_null as testing set (5256 compounds)
 
@@ -387,6 +387,8 @@ rfc.fit(X_train, y_train)
 ```{python}
 test_probs = rfc.predict_proba(X_test)
 ```
+
+A useful web link on area under the ROC curve - https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc
 
 ```{python}
 # To avoid re-inventing the wheel, the following function code for calculating the metrics of the RF model was adapted from Landrum et al., from this notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb
