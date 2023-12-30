@@ -24,10 +24,10 @@ This post was really just an addition towards the last random forest (RF) post (
 
 ##### **Overview**
 
-* Data source using chembl_downloader
+* Data source using *chembl_downloader*
 * Own little script of random_forest.py (avoid repeating code)
-* SMILES checker from scikit_mol
-* Imbalanced datasets in RF classifiers using ghostml
+* SMILES checker from *scikit_mol*
+* Imbalanced datasets in RF classifiers using *ghostml*
 
 <br>
 
@@ -142,6 +142,8 @@ df_prep = df_ache.apply(preprocess, axis = 1)
 df_prep.head()
 ```
 
+<br>
+
 ###### **scikit_mol**
 
 Introducing a new package, scikit_mol, which originated from 2022 RDKit UGM hackathon. The blog post link below elaborated further about the package. I've only used it for the purpose of checking for missing SMILES or errors in SMILES, but it has much more functions than this - potentially very useful for integrating with scikit-learn's pipeline method. Its repository should inform more details.
@@ -235,6 +237,16 @@ print(df_mp4.shape)
 df_merge_new.value_counts("max_phase")
 ```
 
+<br>
+
+##### **Model building**
+
+* aim to model and classify the max phase of ChEMBL small molecules (max phase 4 or not)
+    - *target*: max_phase
+    - *features*: various RDKit 2D descriptors (RDKit2D)
+
+1. re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
+
 ```{python}
 #df_merge_new = df_merge_new.fillna("null")
 df_merge_new = df_merge_new.fillna(0)
@@ -252,6 +264,7 @@ df_null.head()
 ```
 
 ```{python}
+# The 10 max phase 4 compounds used in last post
 df_mp4
 ```
 
@@ -287,28 +300,20 @@ df_null_lb.insert(0, "max_phase_lb", first_col_null)
 ```
 
 ```{python}
-# Combine df_mp4_lb & df_null
-
-# df_full = pd.merge(
-#     df_null[["max_phase_lb"]],
-#     df_mp4_lb,
-#     left_index=True,
-#     right_index=True
-# )
+df_null_lb.head()
 ```
 
-<br>
+```{python}
+df_mp4_lb.head()
+```
 
-##### **Model building**
-
-* aim to model and classify the max phase of ChEMBL small molecules (max phase 4 or not)
-    - *target*: max_phase
-    - *features*: various RDKit 2D descriptors (RDKit2D)
-
-1. re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
+```{python}
+# Concatenate df_mp4_lb & df_null_lb
+df_full = pd.concat([df_null_lb, df_mp4_lb])
+df_full
+```
 
 2. train RF classifier model as usual (focus is on an imbalanced dataset of actives and inactives) - using same set of training data as last post (on the same 10 compounds)
-
 
 * Training dataset
 
@@ -317,13 +322,12 @@ print(df_mp4_lb.shape)
 ```
 
 **TODO**:
-**Combine df_null & df_mp4_lb (= df_full) and use train_test_split() at test_size = 0.2**
+**use train_test_split() at test_size = 0.2**
 
 ```{python}
 # Do train_test_split() on df_full (mixture of max_phase 0 and 1)
 
 ```
-
 
 ---Previous data splits into arrays begins---
 
