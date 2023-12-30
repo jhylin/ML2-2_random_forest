@@ -41,6 +41,7 @@ import datamol as dm
 from rdkit.Chem import Descriptors
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
+from sklearn.model_selection import train_test_split
 #from rdkit.Chem import PandasTools
 from scikit_mol.utilities import CheckSmilesSanitazion
 ```
@@ -325,51 +326,57 @@ df_full
 # X_train = X_train.to_numpy()
 # X_train
 
+# X - features, y - target
 X = df_full.iloc[:, 3:]
+y = df_full.iloc[:, 0]
+```
+
+```{python}
+X = X.to_numpy()
+y = y.to_numpy()
+```
+
+```{python}
+y
 ```
 
 ```{python}
 # Target variable in training data
-y_train = df_mp4_lb[["max_phase_lb"]]
-y_train = y_train.to_numpy()
+# y_train = df_mp4_lb[["max_phase_lb"]]
+# y_train = y_train.to_numpy()
 # Change column-vector y into a 1D array (changing shape) - ndarray.ravel()
-y_train = y_train.ravel()
+# y_train = y_train.ravel()
 ```
 
 * Testing dataset
 
 ```{python}
-print(df_null.shape)
+# print(df_null.shape)
 ```
 
 ```{python}
 # Testing data using df_null dataset
-X_test = df_null.iloc[:, 2:]
-X_test = X_test.to_numpy()
-X_test
+# X_test = df_null.iloc[:, 2:]
+# X_test = X_test.to_numpy()
+# X_test
 ```
 
 ```{python}
 # Define y_test
-y_test = df_null.iloc[:,0]
-y_test = y_test.to_numpy()
-# y_test = y_test.ravel()
+# y_test = df_null.iloc[:,0]
+# y_test = y_test.to_numpy()
 ```
 
 ---Previous data splits into arrays ends---
 
-**TODO**:
-
-**use train_test_split() at test_size = 0.2**
-
 ```{python}
-# Do train_test_split() on df_full (mixture of max_phase 0 and 1)
-X_train, X_test, y_train, y_test = train_test_split()
+# Using train_test_split() this time to split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=1)
 
 ```
 
-* Use df_mp4 as training set (10 compounds)
-* Use df_null as testing set (5256 compounds)
+* Use df_mp4 as actives (10 compounds)
+* Use df_null as inactives (5256 compounds)
 
 * Training RF classifier model
 
@@ -378,14 +385,14 @@ X_train, X_test, y_train, y_test = train_test_split()
 
 # Using RandomForestClassifier() to train model
 rfc = RandomForestClassifier(max_depth=3, random_state=1, max_features="sqrt", oob_score=True)
-
 rfc.fit(X_train, y_train)
 ```
 
 3. get the prediction probabilities on the testing data & show confusion matrix with classification metrics
 
 ```{python}
-test_probs = rfc.predict_proba(X_test)
+# Extract positive prediction probabilities for the testing set
+test_probs = rfc.predict_proba(X_test)[:,1]
 ```
 
 A useful web link on area under the ROC curve - https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc
@@ -405,16 +412,23 @@ def calc_metrics(labels_test, test_probs, threshold = 0.5):
 ```
 
 ```{python}
-# Problem with y_test - only one label in it (1 only), likely needs binary labels (0 & 1)
-# needed for roc_auc_score
+# Problem with y_test - only one label in it (1 only), needs binary labels (0 & 1) 
+# needed for roc_auc_score (measures true +ve & false +ve rates)
 
 calc_metrics(y_test, test_probs, threshold = 0.5)
+
+# This was an extreme case - as only 10 actives vs. 5256 inactives
 ```
 
 4. two approaches from GHOST paper (main idea was optimising and shifting decision threshold)
     - approach 1 based on RDKit blog post (ref. 41)
     - approach 2 led to Generalised threshold shifting (GHOST) procedure - ghostml code
     *using only approach 2 ghostml - as both approaches were shown to be performing similarly in the paper and also approach 1 was already described in a RDKit blog post*
+
+```{python}
+# Get the positive prediction probabilities of the training set
+
+```
 
 5. shift decision threshold using ghostml, a postprocessing way (note: last post used re-sampling method in a preprocessing way)
     - extract the prediction probabilities from the RF classifier trained model
