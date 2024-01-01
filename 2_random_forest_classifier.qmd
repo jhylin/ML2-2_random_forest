@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2023-12-30'
+date: '2024-1-1'
 draft: true
 categories: 
     - Machine learning projects
@@ -20,6 +20,8 @@ bibliography: references.bib
 
 This post was really just an addition towards the last random forest (RF) post (machine learning (ML) series 2.2). It was mainly inspired by this paper (cite Esposito et al. on ghostml) from [rinikerlab](https://github.com/rinikerlab). Also, it was nice to complete the random forest series by adding a random forest classifier model since last post only used a regressor. I also tried to have another look again on imbalanced datasets which were common in real-life drug discovery projects, and also it was the main reason to use the code from the paper mentioned. While I was working on this post, I've also come across a few other packages that I haven't used before so I thought it might be useful to mention them here too.
 
+**Mention outcome here - the change in Cohen's kappa or improvement in confusion matrix after using ghostml**
+
 <br>
 
 ##### **Overview**
@@ -27,7 +29,7 @@ This post was really just an addition towards the last random forest (RF) post (
 * Data source using *chembl_downloader*
 * Own little script of random_forest.py (avoid repeating code)
 * SMILES checker from *scikit_mol*
-* Imbalanced datasets in RF classifiers using *ghostml*
+* Dealing with imbalanced datasets in RF classifiers by using *ghostml*
 
 <br>
 
@@ -35,6 +37,7 @@ This post was really just an addition towards the last random forest (RF) post (
 
 ```{python}
 import pandas as pd
+import numpy as np
 import chembl_downloader
 from chembl_downloader import latest, queries, query
 import datamol as dm
@@ -44,6 +47,7 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 #from rdkit.Chem import PandasTools
 from scikit_mol.utilities import CheckSmilesSanitazion
+import ghostml
 ```
 
 <br>
@@ -214,12 +218,17 @@ list_mp4 = ["CHEMBL95", "CHEMBL1128", "CHEMBL640", "CHEMBL502", "CHEMBL481", "CH
 
 # Search for the compounds in list_mp4 within df_merge's "molecule_chembl_id" column
 df_prev = df_merge.loc[df_merge["molecule_chembl_id"].isin(list_mp4)]
+df_prev
 # Many duplicates
+```
 
+```{python}
 # Some compounds with duplicates
 print(df_prev.shape)
 df_prev.value_counts("molecule_chembl_id")
+```
 
+```{python}
 # Dropping duplicated compound chembl ids
 df_merge_new = df_merge.drop_duplicates(subset=["molecule_chembl_id"], keep="first")
 print(df_merge_new.shape)
@@ -249,6 +258,7 @@ df_merge_new.value_counts("max_phase")
 1. re-label max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
 
 ```{python}
+# Re-label max phase NaN as 0
 #df_merge_new = df_merge_new.fillna("null")
 df_merge_new = df_merge_new.fillna(0)
 
@@ -298,15 +308,14 @@ df_mp4_lb
 df_null_lb = df_null.assign(max_phase_lb = df_null["max_phase"])
 first_col_null = df_null_lb.pop("max_phase_lb")
 df_null_lb.insert(0, "max_phase_lb", first_col_null)
-```
-
-```{python}
 df_null_lb.head()
 ```
 
 ```{python}
 df_mp4_lb.head()
 ```
+
+The two dataframes should share same column names so that they could be combined together.
 
 ```{python}
 # Concatenate df_mp4_lb & df_null_lb
@@ -326,12 +335,13 @@ df_full
 # X_train = X_train.to_numpy()
 # X_train
 
-# X - features, y - target
+# Defining X - features & y - target
 X = df_full.iloc[:, 3:]
 y = df_full.iloc[:, 0]
 ```
 
 ```{python}
+# Convert both X & y to arrays
 X = X.to_numpy()
 y = y.to_numpy()
 ```
@@ -372,7 +382,6 @@ y
 ```{python}
 # Using train_test_split() this time to split data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=1)
-
 ```
 
 * Use df_mp4 as actives (10 compounds)
@@ -392,18 +401,18 @@ rfc.fit(X_train, y_train)
 
 ```{python}
 # Extract positive prediction probabilities for the testing set
-test_probs = rfc.predict_proba(X_test)[:,1]
+test_probs = rfc.predict_proba(X_test)[:, 1]
 ```
 
 A useful web link on area under the ROC curve - https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc
 
 ```{python}
-# To avoid re-inventing the wheel, the following function code for calculating the metrics of the RF model was adapted from Landrum et al., from this notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb
+# To avoid re-inventing the wheel, the following function code for calculating metrics of the RF model was adapted from Landrum et al., from this notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb
 
 def calc_metrics(labels_test, test_probs, threshold = 0.5):
     scores = [1 if x>=threshold else 0 for x in test_probs]
     auc = metrics.roc_auc_score(labels_test, test_probs)
-    kappa = metrics.cohen_kappa_score(labels_test,scores)
+    kappa = metrics.cohen_kappa_score(labels_test, scores)
     confusion = metrics.confusion_matrix(labels_test,scores, labels=list(set(labels_test)))
     print('thresh: %.2f, kappa: %.3f, AUC test-set: %.3f'%(threshold, kappa, auc))
     print(confusion)
@@ -427,10 +436,32 @@ calc_metrics(y_test, test_probs, threshold = 0.5)
 
 ```{python}
 # Get the positive prediction probabilities of the training set
-
+train_probs = rfc.predict_proba(X_train)[:, 1]
 ```
 
 5. shift decision threshold using ghostml, a postprocessing way (note: last post used re-sampling method in a preprocessing way)
     - extract the prediction probabilities from the RF classifier trained model
     - optimise the decision threshold using ghostml via testing various thresholds (in spaces of 0.05 with range of 0.05 to 0.5) - to search for the threshold that has maximised the Cohen's kappa
     - calculate confusion matrix and classification metrics based on the optimised decision threshold
+
+```{python}
+# Looking for the most optimal threshold
+# Setting up different decision thresholds in space of 0.05
+thresholds = np.round(np.arange(0.05,0.55,0.05),2)
+thresholds
+```
+
+```{python}
+# The ghostml source code that worked as how the paper explained - looking for the best threshold with the most optimal Cohen's Kappa
+threshold1 = ghostml.optimize_threshold_from_predictions(y_train, train_probs, thresholds, ThOpt_metrics = 'Kappa') 
+```
+
+```{python}
+#type(threshold1)
+threshold1
+```
+
+```{python}
+# Using calc_metrics function again on the newly-found/shifted decision threshold
+calc_metrics(y_train, train_probs, threshold=threshold1)
+```
