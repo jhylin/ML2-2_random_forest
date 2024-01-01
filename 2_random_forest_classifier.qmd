@@ -325,9 +325,9 @@ df_full
 
 2. train RF classifier model as usual (focus is on an imbalanced dataset of actives and inactives) - using same set of training data as last post (on the same 10 compounds)
 
----Previous data splits into arrays begins---
+*Note: following section was the old data splits - to be removed*
 
-* Training dataset
+---Old data splits into arrays begins---
 
 ```{python}
 # Selecting training data via data positions using iloc
@@ -335,19 +335,7 @@ df_full
 # X_train = X_train.to_numpy()
 # X_train
 
-# Defining X - features & y - target
-X = df_full.iloc[:, 3:]
-y = df_full.iloc[:, 0]
-```
 
-```{python}
-# Convert both X & y to arrays
-X = X.to_numpy()
-y = y.to_numpy()
-```
-
-```{python}
-y
 ```
 
 ```{python}
@@ -357,8 +345,6 @@ y
 # Change column-vector y into a 1D array (changing shape) - ndarray.ravel()
 # y_train = y_train.ravel()
 ```
-
-* Testing dataset
 
 ```{python}
 # print(df_null.shape)
@@ -377,15 +363,28 @@ y
 # y_test = y_test.to_numpy()
 ```
 
----Previous data splits into arrays ends---
+---Old data splits into arrays ends---
+
+---New data splits begins---
+
+Eventually df_full contained 10 active compounds and 5256 inactive compounds.
+
+```{python}
+# Defining X - features & y - target
+X = df_full.iloc[:, 3:]
+y = df_full.iloc[:, 0]
+```
+
+```{python}
+# Convert both X & y to arrays
+X = X.to_numpy()
+y = y.to_numpy()
+```
 
 ```{python}
 # Using train_test_split() this time to split data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=1)
 ```
-
-* Use df_mp4 as actives (10 compounds)
-* Use df_null as inactives (5256 compounds)
 
 * Training RF classifier model
 
@@ -407,7 +406,7 @@ test_probs = rfc.predict_proba(X_test)[:, 1]
 A useful web link on area under the ROC curve - https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc
 
 ```{python}
-# To avoid re-inventing the wheel, the following function code for calculating metrics of the RF model was adapted from Landrum et al., from this notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb
+# Rather than re-inventing the wheel, the following function code for calculating metrics of the RF model was adapted from Landrum et al., from this notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb
 
 def calc_metrics(labels_test, test_probs, threshold = 0.5):
     scores = [1 if x>=threshold else 0 for x in test_probs]
@@ -421,7 +420,7 @@ def calc_metrics(labels_test, test_probs, threshold = 0.5):
 ```
 
 ```{python}
-# Problem with y_test - only one label in it (1 only), needs binary labels (0 & 1) 
+# Initial problem with y_test - only one label in it (1 only), needs binary labels (0 & 1) 
 # needed for roc_auc_score (measures true +ve & false +ve rates)
 
 calc_metrics(y_test, test_probs, threshold = 0.5)
@@ -466,3 +465,7 @@ new_threshold
 # It showed an improved classification outcome through the confusion matrix
 calc_metrics(y_train, train_probs, threshold=new_threshold)
 ```
+
+**TODO**
+* Adding/changing to ThOpt_metrics = "ROC" code (different to the ref notebook)
+* Best to add a bit of explanation of ROC
