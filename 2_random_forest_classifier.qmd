@@ -453,15 +453,16 @@ thresholds
 
 ```{python}
 # The ghostml source code that worked as how the paper explained - looking for the best threshold with the most optimal Cohen's Kappa
-threshold1 = ghostml.optimize_threshold_from_predictions(y_train, train_probs, thresholds, ThOpt_metrics = 'Kappa') 
+new_threshold = ghostml.optimize_threshold_from_predictions(y_train, train_probs, thresholds, ThOpt_metrics = 'Kappa') 
 ```
 
 ```{python}
 #type(threshold1)
-threshold1
+new_threshold
 ```
 
 ```{python}
 # Using calc_metrics function again on the newly-found/shifted decision threshold
-calc_metrics(y_train, train_probs, threshold=threshold1)
+# It showed an improved classification outcome through the confusion matrix
+calc_metrics(y_train, train_probs, threshold=new_threshold)
 ```
