@@ -416,3 +416,6 @@ new_threshold
 # It showed an improved classification outcome through the confusion matrix
 calc_metrics(y_train, train_probs, threshold=new_threshold)
 ```
+
+**TODO:**
+Add AUROC curve before and after shifting threshold - see example in book
