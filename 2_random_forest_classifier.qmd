@@ -377,9 +377,9 @@ calc_metrics(y_test, test_probs, threshold = 0.5)
 
 5. two approaches from GHOST paper (main idea was optimising and shifting decision threshold):
 
-    - approach 1 (out-of-bag approach) based on RDKit blog post (ref. 41) - http://rdkit.blogspot.com/2018/11/working-with-unbalanced-data-part-i.html
+    - approach 1 (out-of-bag method, aimed for RF classifiers) based on RDKit blog post (ref. 41) - http://rdkit.blogspot.com/2018/11/working-with-unbalanced-data-part-i.html ([viewable notebook version](https://nbviewer.org/github/greglandrum/rdkit_blog/blob/master/notebooks/Working%20with%20unbalanced%20data%20part%201.ipynb) via nbviewer)
 
-    - approach 2 led to Generalised threshold shifting (GHOST) procedure - ghostml package
+    - approach 2 led to Generalised threshold shifting (GHOST) procedure (could be used for any classification methods) - ghostml package
 
 I only used approach 2 here as both approaches were shown to be performing similarly in the paper, and also approach 1 was already described in a RDKit blog post.
 
@@ -388,7 +388,7 @@ I only used approach 2 here as both approaches were shown to be performing simil
 train_probs = rfc.predict_proba(X_train)[:, 1]
 ```
 
-6. shift decision threshold using ghostml, a postprocessing way (note: last post used re-sampling method in a preprocessing way)
+6. Shift decision threshold using ghostml in a postprocessing way (note: last post used re-sampling method in a preprocessing way)
     - extract the prediction probabilities from the RF classifier trained model
     - optimise the decision threshold using ghostml via testing various thresholds (in spaces of 0.05 with range of 0.05 to 0.5) - to search for the threshold that has maximised the Cohen's kappa
     - calculate confusion matrix and classification metrics based on the optimised decision threshold
