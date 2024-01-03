@@ -383,32 +383,33 @@ calc_metrics(y_test, test_probs, threshold = 0.5)
 
 I only used approach 2 here as both approaches were shown to be performing similarly in the paper, and also approach 1 was already described in a RDKit blog post.
 
+* extract the prediction probabilities from the RF classifier trained model
 ```{python}
 # Get the positive prediction probabilities of the training set
 train_probs = rfc.predict_proba(X_train)[:, 1]
 ```
 
 6. Shift decision threshold using ghostml in a postprocessing way (note: last post used re-sampling method in a preprocessing way)
-    - extract the prediction probabilities from the RF classifier trained model
-    - optimise the decision threshold using ghostml via testing various thresholds (in spaces of 0.05 with range of 0.05 to 0.5) - to search for the threshold that has maximised the Cohen's kappa
-    - calculate confusion matrix and classification metrics based on the optimised decision threshold
+
+* optimise the decision threshold using ghostml via testing various thresholds (in spaces of 0.05 with range of 0.05 to 0.5) - to search for the threshold that has maximised the Cohen's kappa
 
 ```{python}
-# Looking for the most optimal threshold
 # Setting up different decision thresholds in space of 0.05
 thresholds = np.round(np.arange(0.05,0.55,0.05),2)
 thresholds
 ```
 
 ```{python}
-# The ghostml source code that worked as how the paper explained - looking for the best threshold with the most optimal Cohen's Kappa
+# Looking for the best threshold with the most optimal Cohen's Kappa
 new_threshold = ghostml.optimize_threshold_from_predictions(y_train, train_probs, thresholds, ThOpt_metrics = 'ROC') 
 ```
 
 ```{python}
-#type(threshold1)
+# Show the optimal decision threshold
 new_threshold
 ```
+
+* calculate confusion matrix and classification metrics based on the optimised decision threshold
 
 ```{python}
 # Using calc_metrics function again on the newly-found/shifted decision threshold
