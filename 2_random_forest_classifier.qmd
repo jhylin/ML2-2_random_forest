@@ -20,7 +20,7 @@ bibliography: references.bib
 
 This post was really just an addition towards the last random forest (RF) post (machine learning (ML) series 2.2). It was mainly inspired by this paper (cite Esposito et al. on ghostml) from [rinikerlab](https://github.com/rinikerlab). It was also nice to complete the RF series by adding a RF classifier model since last post was only on a regressor. Knowing that imbalanced datasets were common in drug discovery projects, learning new strategies to deal with them was also extremely useful, and while I was working on this post, I also came across a few other packages that I haven't used before, so I've included them all down below.
 
-**Mention outcome here? - the change in Cohen's kappa or improvement in confusion matrix after using ghostml**
+**Mention outcome here? - change in Cohen's kappa & AUC or improvement in confusion matrix after using ghostml, along with change in ROC curve**
 
 <br>
 
@@ -418,4 +418,4 @@ calc_metrics(y_train, train_probs, threshold=new_threshold)
 ```
 
 **TODO:**
-Add AUROC curve before and after shifting threshold - see example in book
+Add ROC curves before and after shifting threshold - see example in book
