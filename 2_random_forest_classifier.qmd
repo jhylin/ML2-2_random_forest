@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2024-1-3'
+date: '2024-1-5'
 draft: true
 categories: 
     - Machine learning projects
@@ -118,11 +118,6 @@ print(df_ache.shape)
 df_ache.head()
 ```
 
-```{python}
-# Check it was only AChE
-#df.value_counts("chembl_id")
-```
-
 <br>
 
 ##### **Some data cleaning**
@@ -225,7 +220,7 @@ df_prev.value_counts("molecule_chembl_id")
 ```
 
 ```{python}
-# Dropping duplicated compound via chembl IDs
+# Dropping duplicated compound via chembl IDs in the main df
 df_merge_new = df_merge.drop_duplicates(subset=["molecule_chembl_id"], keep="first")
 print(df_merge_new.shape)
 df_merge_new.head()
@@ -238,7 +233,7 @@ print(df_mp4.shape)
 ```
 
 ```{python}
-# Compounds with max phase 0 not shown
+# note: compounds with max phase 0 not shown in the count
 df_merge_new.value_counts("max_phase")
 ```
 
@@ -254,7 +249,6 @@ The aim was to model and classify the max phase of ChEMBL small molecules - max 
 
 ```{python}
 # Re-label max phase NaN as 0
-#df_merge_new = df_merge_new.fillna("null")
 df_merge_new = df_merge_new.fillna(0)
 df_merge_new
 ```
@@ -298,7 +292,7 @@ df_full
 
 3. Define X and y variables and train RF classifier model 
 
-Eventually df_full contained 10 active compounds and 5256 inactive compounds.
+Eventually df_full contained 10 active compounds and 5256 inactive compounds, as shown from the value counts.
 
 ```{python}
 df_full.value_counts("max_phase_lb")
@@ -332,7 +326,7 @@ Reference notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/exam
 
 ```{python}
 # Using RandomForestClassifier() to train model
-# max_features="sqrt" by default, but in case I did anything weird, I decided to show it explicitly in the code to make sure the right one was used
+# max_features = "sqrt" by default, I decided to show it explicitly in the code to make sure the right one was used
 rfc = RandomForestClassifier(max_depth=3, random_state=1, max_features="sqrt", oob_score=True)
 rfc.fit(X_train, y_train)
 ```
@@ -384,6 +378,7 @@ calc_metrics(y_test, test_probs, threshold = 0.5)
 I only used approach 2 here as both approaches were shown to be performing similarly in the paper, and also approach 1 was already described in a RDKit blog post.
 
 * extract the prediction probabilities from the RF classifier trained model
+
 ```{python}
 # Get the positive prediction probabilities of the training set
 train_probs = rfc.predict_proba(X_train)[:, 1]
@@ -391,7 +386,7 @@ train_probs = rfc.predict_proba(X_train)[:, 1]
 
 6. Shift decision threshold using ghostml in a postprocessing way (note: last post used re-sampling method in a preprocessing way)
 
-* optimise the decision threshold using ghostml via testing various thresholds (in spaces of 0.05 with range of 0.05 to 0.5) - to search for the threshold that has maximised the Cohen's kappa
+* optimise the decision threshold using ghostml via testing various thresholds (in spaces of 0.05 with range of 0.05 to 0.5) - to search for the most optimal threshold with most maximised Cohen's kappa
 
 ```{python}
 # Setting up different decision thresholds in space of 0.05
@@ -417,5 +412,77 @@ new_threshold
 calc_metrics(y_train, train_probs, threshold=new_threshold)
 ```
 
-**TODO:**
-Add ROC curves before and after shifting threshold - see example in book
+##### **ROC curves before and after shifting threshold**
+
+```{python}
+import matplotlib.pyplot as plt
+
+from sklearn.metrics import RocCurveDisplay, roc_curve
+```
+
+```{python}
+# Training set ROC curve
+RocCurveDisplay.from_predictions(y_train, train_probs, plot_chance_level = True)
+```
+
+```{python}
+# Testing set ROC curve
+RocCurveDisplay.from_predictions(y_test, test_probs, plot_chance_level = True)
+```
+
+Alternative ROC curve plotting method:
+
+* Curve looks weird at the moment - work-in-progress
+
+```{python}
+# Sample code
+
+# fpr,tpr,_ = metrics.roc_curve(oob_tgt,oob_probs);
+# plt.figure()
+# lw = 2
+# plt.plot(fpr, tpr, lw=lw)
+# plt.plot([0, 1], [0, 1], color='k', lw=lw, linestyle='--')
+# plt.xlim([0.0, 1.0])
+# plt.ylim([0.0, 1.05])
+# plt.xlabel('False Positive Rate')
+# plt.ylabel('True Positive Rate')
+# plt.title("%s: AUC=%.3f"%(aid,auroc))
+# plt.show()
+```
+
+```{python}
+# Set up true +ve rate (tpr), false +ve rate (fpr) & threshold
+fpr, tpr, thresh = metrics.roc_curve(y_train, train_probs, pos_label=1.0)
+```
+
+```{python}
+roc_df = pd.DataFrame({"recall": tpr, "specificity": 1 - fpr})
+```
+
+```{python}
+pt = roc_df.plot(x = "specificity", y = "recall", figsize=(3, 3), legend=False)
+
+# random guessing (threshold = 0.5)
+pt.plot([0, 1], [0, 1], color = "b", lw = 2, linestyle="--")
+
+pt.set_ylim([0.0, 1.05])
+pt.set_xlim([0.0, 1.0])
+
+pt.set_xlabel("specificity")
+pt.set_ylabel("recall")
+```
+
+```{python}
+#plt.figure()
+# plt.plot(fpr, tpr, lw = 2)
+
+# # random guessing (threshold = 0.5)
+# plt.plot([0, 1], [0, 1], color = "", lw = 2, linestyle="--")
+
+# plt.ylim([0.0, 1.05])
+# plt.xlim([0.0, 1.0])
+
+# plt.xlabel("specificity")
+# plt.ylabel("recall")
+# plt.show()
+```
