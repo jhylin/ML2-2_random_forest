@@ -73,7 +73,7 @@ print(f"The latest ChEMBL version is: {latest_version}")
 queries.markdown(queries.get_target_sql(target_id="CHEMBL220", target_type="SINGLE PROTEIN"))
 ```
 
-```{python}
+```{{python}}
 # Following data download worked (4.41GB for SQL query below, might take several min)
 
 # Added MOLECULE_DICTIONARY.max_phase into sql to show max phases for compounds targeting AChE
@@ -102,13 +102,13 @@ WHERE TARGET_DICTIONARY.chembl_id = 'CHEMBL220'
 df = chembl_downloader.query(sql)
 ```
 
-```{python}
+```{{python}}
 df.head()
 ```
 
 ```{python}
 # Save df as .csv file
-df.to_csv("chembl_d_ache", sep=",", index=False)
+#df.to_csv("chembl_d_ache", sep=",", index=False)
 ```
 
 ```{python}
@@ -431,7 +431,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import RocCurveDisplay, roc_curve
 ```
 
-###### **Before shifting threshold**
+###### **Testing set ROC curve**
 
 ```{python}
 # Testing set ROC curve
@@ -440,14 +440,14 @@ RocCurveDisplay.from_predictions(y_test, test_probs, plot_chance_level = True)
 
 <br>
 
-###### **After shifting threshold**
+###### **Training set ROC curve**
 
 ```{python}
 # Training set ROC curve
 RocCurveDisplay.from_predictions(y_train, train_probs, plot_chance_level = True)
 ```
 
-Alternative ROC curve plotting method that would reproduce a similar plot (longer way):
+Alternative ROC curve plotting method that would reproduce a similar plot:
 
 ```{python}
 # Look for true positive rate (tpr), false positive rate (fpr) & threshold
