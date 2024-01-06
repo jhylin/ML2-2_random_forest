@@ -1,0 +1,3598 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.280">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jennifer HY Lin">
+<meta name="dcterms.date" content="2024-01-06">
+
+<title>Random forest classifier</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="2_random_forest_classifier_files/libs/clipboard/clipboard.min.js"></script>
+<script src="2_random_forest_classifier_files/libs/quarto-html/quarto.js"></script>
+<script src="2_random_forest_classifier_files/libs/quarto-html/popper.min.js"></script>
+<script src="2_random_forest_classifier_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="2_random_forest_classifier_files/libs/quarto-html/anchor.min.js"></script>
+<link href="2_random_forest_classifier_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="2_random_forest_classifier_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="2_random_forest_classifier_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="2_random_forest_classifier_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="2_random_forest_classifier_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Random forest classifier</h1>
+<p class="subtitle lead">Series 2.2.1 - more on imbalanced dataset</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">Machine learning projects</div>
+    <div class="quarto-category">Tree models</div>
+    <div class="quarto-category">Pandas</div>
+    <div class="quarto-category">Scikit-learn</div>
+    <div class="quarto-category">ChEMBL database</div>
+    <div class="quarto-category">Python</div>
+  </div>
+  </div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jennifer HY Lin </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 6, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="brief-introduction" class="level5">
+<h5 class="anchored" data-anchor-id="brief-introduction"><strong>Brief introduction</strong></h5>
+<p>This post was really just an addition towards the last random forest (RF) post (machine learning (ML) series 2.2). It was mainly inspired by this paper (cite Esposito et al.&nbsp;on ghostml) from <a href="https://github.com/rinikerlab">rinikerlab</a>. It was also nice to complete the RF series by adding a RF classifier model since last post was only on a regressor. Knowing that imbalanced datasets were common in drug discovery projects, learning new strategies to deal with them was also extremely useful, and while I was working on this post, I also came across a few other packages that I haven’t used before, so I’ve included them all down below.</p>
+<p><strong>Mention outcome here? - change in Cohen’s kappa &amp; AUC or improvement in confusion matrix after using ghostml, along with change in ROC curve</strong></p>
+<p><br></p>
+</section>
+<section id="overview-on-packagesscripts-used" class="level5">
+<h5 class="anchored" data-anchor-id="overview-on-packagesscripts-used"><strong>Overview on packages/scripts used</strong></h5>
+<ul>
+<li>Data source using <em>chembl_downloader</em></li>
+<li>Own little script of random_forest.py (avoid repeating code)</li>
+<li>SMILES checker from <em>scikit_mol</em></li>
+<li>Dealing with imbalanced datasets in RF classifiers by using <em>ghostml</em></li>
+</ul>
+<p><br></p>
+</section>
+<section id="importing-libraries" class="level5">
+<h5 class="anchored" data-anchor-id="importing-libraries"><strong>Importing libraries</strong></h5>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> chembl_downloader</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> chembl_downloader <span class="im">import</span> latest, queries, query</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> datamol <span class="im">as</span> dm</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> rdkit.Chem <span class="im">import</span> Descriptors</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestClassifier</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> metrics</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scikit_mol.utilities <span class="im">import</span> CheckSmilesSanitazion</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> ghostml</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><br></p>
+</section>
+<section id="data-retrieval-using-chembl_downloader" class="level5">
+<h5 class="anchored" data-anchor-id="data-retrieval-using-chembl_downloader"><strong>Data retrieval using chembl_downloader</strong></h5>
+<p>chembl_downloader package was something I wanted to try a while back after knowing that it would thoroughly document the ChEMBL data source (I’ve tried manual download and chembl_webresource_client, and they were probably not the best strategies for data reproducibility). Its idea was to generate a data source that could be fully reproducible. It involved some SQL at the beginning to specify the exact type of data needed, so some SQL knowledge was required. The rest were pretty straightforward. Other uses for this package were elaborated much more nicely in its GitHub repository at https://github.com/cthoyt/chembl-downloader. Overall, I think it was very useful in a Jupyter notebook or equivalent environments to document the data used.</p>
+<p>Reference notebooks that used chembl_downloader (more provided in its repository): - https://github.com/cthoyt/chembl-downloader/blob/main/notebooks/drug-indications.ipynb - https://github.com/PatWalters/practical_cheminformatics_tutorials/blob/1f7c61f83eec81081ef2605ac70440bf1940d914/misc/working_with_ChEMBL_drug_data.ipynb#L80</p>
+<p>What I did was shown below.</p>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the latest version of ChEMBL used</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>latest_version <span class="op">=</span> latest()</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"The latest ChEMBL version is: </span><span class="sc">{</span>latest_version<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>The latest ChEMBL version is: 33</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Query chembl_downloader to show SQL required to extract ChEMBL data for a specific protein target</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># e.g. target_chembl_id for AChE: CHEMBL220</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>queries.markdown(queries.get_target_sql(target_id<span class="op">=</span><span class="st">"CHEMBL220"</span>, target_type<span class="op">=</span><span class="st">"SINGLE PROTEIN"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div class="sourceCode" id="cb5"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    ASSAYS.chembl_id              <span class="kw">AS</span> assay_chembl_id,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    TARGET_DICTIONARY.target_type,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    TARGET_DICTIONARY.tax_id,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    COMPOUND_STRUCTURES.canonical_smiles,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    MOLECULE_DICTIONARY.chembl_id <span class="kw">AS</span> molecule_chembl_id,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    ACTIVITIES.standard_type,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    ACTIVITIES.pchembl_value</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> TARGET_DICTIONARY</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>     <span class="kw">JOIN</span> ASSAYS <span class="kw">ON</span> TARGET_DICTIONARY.tid <span class="op">==</span> ASSAYS.tid</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>     <span class="kw">JOIN</span> ACTIVITIES <span class="kw">ON</span> ASSAYS.assay_id <span class="op">==</span> ACTIVITIES.assay_id</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>     <span class="kw">JOIN</span> MOLECULE_DICTIONARY <span class="kw">ON</span> MOLECULE_DICTIONARY.molregno <span class="op">==</span> ACTIVITIES.molregno</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>     <span class="kw">JOIN</span> COMPOUND_STRUCTURES <span class="kw">ON</span> MOLECULE_DICTIONARY.molregno <span class="op">==</span> COMPOUND_STRUCTURES.molregno</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="kw">WHERE</span> TARGET_DICTIONARY.chembl_id <span class="op">=</span> <span class="st">'CHEMBL220'</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AND</span> ACTIVITIES.pchembl_value <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AND</span> TARGET_DICTIONARY.target_type <span class="op">=</span> <span class="st">'SINGLE PROTEIN'</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Following data download worked (4.41GB for SQL query below, might take several min)</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Added MOLECULE_DICTIONARY.max_phase into sql to show max phases for compounds targeting AChE</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>sql <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="st">SELECT</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="st">    ASSAYS.chembl_id              AS assay_chembl_id,</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="st">    TARGET_DICTIONARY.target_type,</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="st">    TARGET_DICTIONARY.tax_id,</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="st">    TARGET_DICTIONARY.chembl_id,</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="st">    COMPOUND_STRUCTURES.canonical_smiles,</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="st">    MOLECULE_DICTIONARY.chembl_id AS molecule_chembl_id,</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="st">    MOLECULE_DICTIONARY.max_phase,</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="st">    ACTIVITIES.standard_type,</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="st">    ACTIVITIES.pchembl_value</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="st">FROM TARGET_DICTIONARY</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="st">     JOIN ASSAYS ON TARGET_DICTIONARY.tid == ASSAYS.tid</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="st">     JOIN ACTIVITIES ON ASSAYS.assay_id == ACTIVITIES.assay_id</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="st">     JOIN MOLECULE_DICTIONARY ON MOLECULE_DICTIONARY.molregno == ACTIVITIES.molregno</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="st">     JOIN COMPOUND_STRUCTURES ON MOLECULE_DICTIONARY.molregno == COMPOUND_STRUCTURES.molregno</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="st">WHERE TARGET_DICTIONARY.chembl_id = 'CHEMBL220'</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="st">    AND ACTIVITIES.pchembl_value IS NOT NULL</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="st">    AND TARGET_DICTIONARY.target_type = 'SINGLE PROTEIN'</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> chembl_downloader.query(sql)</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>df.head()</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save df as .csv file</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#df.to_csv("chembl_d_ache", sep=",", index=False)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load dataset from saved .csv file</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>df_ache <span class="op">=</span> pd.read_csv(<span class="st">"chembl_d_ache"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df_ache.shape)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>df_ache.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(7144, 9)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>assay_chembl_id</th>
+      <th>target_type</th>
+      <th>tax_id</th>
+      <th>chembl_id</th>
+      <th>canonical_smiles</th>
+      <th>molecule_chembl_id</th>
+      <th>max_phase</th>
+      <th>standard_type</th>
+      <th>pchembl_value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>CHEMBL1909212</td>
+      <td>SINGLE PROTEIN</td>
+      <td>9606</td>
+      <td>CHEMBL220</td>
+      <td>CC/C(=C(/CC)c1ccc(O)cc1)c1ccc(O)cc1</td>
+      <td>CHEMBL411</td>
+      <td>4.0</td>
+      <td>IC50</td>
+      <td>4.59</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>CHEMBL1003053</td>
+      <td>SINGLE PROTEIN</td>
+      <td>9606</td>
+      <td>CHEMBL220</td>
+      <td>COc1c2occc2cc2ccc(=O)oc12</td>
+      <td>CHEMBL416</td>
+      <td>4.0</td>
+      <td>IC50</td>
+      <td>4.27</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>CHEMBL2406149</td>
+      <td>SINGLE PROTEIN</td>
+      <td>9606</td>
+      <td>CHEMBL220</td>
+      <td>COc1c2occc2cc2ccc(=O)oc12</td>
+      <td>CHEMBL416</td>
+      <td>4.0</td>
+      <td>IC50</td>
+      <td>6.12</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>CHEMBL1909212</td>
+      <td>SINGLE PROTEIN</td>
+      <td>9606</td>
+      <td>CHEMBL220</td>
+      <td>CC1(COc2ccc(CC3SC(=O)NC3=O)cc2)CCCCC1</td>
+      <td>CHEMBL7002</td>
+      <td>-1.0</td>
+      <td>IC50</td>
+      <td>4.82</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>CHEMBL3071788</td>
+      <td>SINGLE PROTEIN</td>
+      <td>9606</td>
+      <td>CHEMBL220</td>
+      <td>O=c1cc(-c2ccc(O)cc2)oc2cc(O)cc(O)c12</td>
+      <td>CHEMBL28</td>
+      <td>NaN</td>
+      <td>IC50</td>
+      <td>7.92</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+</div>
+<p><br></p>
+</section>
+<section id="some-data-cleaning" class="level5">
+<h5 class="anchored" data-anchor-id="some-data-cleaning"><strong>Some data cleaning</strong></h5>
+<p>Minor cleaning and preprocessing were done for this post only, as the focus was more on dealing with imbalanced datasets in RF classifier.</p>
+<p><br></p>
+<section id="mol_prep.py" class="level6">
+<h6 class="anchored" data-anchor-id="mol_prep.py"><strong>mol_prep.py</strong></h6>
+<p>I’ve written or more like compiled my own little pieces of code into a Python script. The idea was to remove most function code in the post to avoid repeating them as they’ve been used frequently in the last few posts. The script would be saved into my project repository, and it would still be a “work-in-progress” script as I work further in the future.</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Trial own mol_prep.py script</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mol_prep <span class="im">import</span> preprocess, rdkit_2d_descriptors</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Preprocess/standardise molecules</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Running preprocess function </span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>df_ache <span class="op">=</span> df_ache.copy()</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>df_prep <span class="op">=</span> df_ache.<span class="bu">apply</span>(preprocess, axis <span class="op">=</span> <span class="dv">1</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>df_prep.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>assay_chembl_id</th>
+      <th>target_type</th>
+      <th>tax_id</th>
+      <th>chembl_id</th>
+      <th>canonical_smiles</th>
+      <th>molecule_chembl_id</th>
+      <th>max_phase</th>
+      <th>standard_type</th>
+      <th>pchembl_value</th>
+      <th>rdkit_mol</th>
+      <th>standard_smiles</th>
+      <th>selfies</th>
+      <th>inchi</th>
+      <th>inchikey</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>CHEMBL1909212</td>
+      <td>SINGLE PROTEIN</td>
+      <td>9606</td>
+      <td>CHEMBL220</td>
+      <td>CC/C(=C(/CC)c1ccc(O)cc1)c1ccc(O)cc1</td>
+      <td>CHEMBL411</td>
+      <td>4.0</td>
+      <td>IC50</td>
+      <td>4.59</td>
+      <td>&lt;rdkit.Chem.rdchem.Mol object at 0x1360c2420&gt;</td>
+      <td>CC/C(=C(/CC)c1ccc(O)cc1)c1ccc(O)cc1</td>
+      <td>[C][C][/C][=Branch1][P][=C][Branch1][Ring1][/C...</td>
+      <td>InChI=1S/C18H20O2/c1-3-17(13-5-9-15(19)10-6-13...</td>
+      <td>RGLYKWWBQGJZGM-ISLYRVAYSA-N</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>CHEMBL1003053</td>
+      <td>SINGLE PROTEIN</td>
+      <td>9606</td>
+      <td>CHEMBL220</td>
+      <td>COc1c2occc2cc2ccc(=O)oc12</td>
+      <td>CHEMBL416</td>
+      <td>4.0</td>
+      <td>IC50</td>
+      <td>4.27</td>
+      <td>&lt;rdkit.Chem.rdchem.Mol object at 0x1360c2490&gt;</td>
+      <td>COc1c2occc2cc2ccc(=O)oc12</td>
+      <td>[C][O][C][=C][O][C][=C][C][Ring1][Branch1][=C]...</td>
+      <td>InChI=1S/C12H8O4/c1-14-12-10-8(4-5-15-10)6-7-2...</td>
+      <td>QXKHYNVANLEOEG-UHFFFAOYSA-N</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>CHEMBL2406149</td>
+      <td>SINGLE PROTEIN</td>
+      <td>9606</td>
+      <td>CHEMBL220</td>
+      <td>COc1c2occc2cc2ccc(=O)oc12</td>
+      <td>CHEMBL416</td>
+      <td>4.0</td>
+      <td>IC50</td>
+      <td>6.12</td>
+      <td>&lt;rdkit.Chem.rdchem.Mol object at 0x1360c2500&gt;</td>
+      <td>COc1c2occc2cc2ccc(=O)oc12</td>
+      <td>[C][O][C][=C][O][C][=C][C][Ring1][Branch1][=C]...</td>
+      <td>InChI=1S/C12H8O4/c1-14-12-10-8(4-5-15-10)6-7-2...</td>
+      <td>QXKHYNVANLEOEG-UHFFFAOYSA-N</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>CHEMBL1909212</td>
+      <td>SINGLE PROTEIN</td>
+      <td>9606</td>
+      <td>CHEMBL220</td>
+      <td>CC1(COc2ccc(CC3SC(=O)NC3=O)cc2)CCCCC1</td>
+      <td>CHEMBL7002</td>
+      <td>-1.0</td>
+      <td>IC50</td>
+      <td>4.82</td>
+      <td>&lt;rdkit.Chem.rdchem.Mol object at 0x1360c2570&gt;</td>
+      <td>CC1(COc2ccc(CC3SC(=O)NC3=O)cc2)CCCCC1</td>
+      <td>[C][C][Branch2][Ring1][=Branch2][C][O][C][=C][...</td>
+      <td>InChI=1S/C18H23NO3S/c1-18(9-3-2-4-10-18)12-22-...</td>
+      <td>YZFWTZACSRHJQD-UHFFFAOYSA-N</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>CHEMBL3071788</td>
+      <td>SINGLE PROTEIN</td>
+      <td>9606</td>
+      <td>CHEMBL220</td>
+      <td>O=c1cc(-c2ccc(O)cc2)oc2cc(O)cc(O)c12</td>
+      <td>CHEMBL28</td>
+      <td>NaN</td>
+      <td>IC50</td>
+      <td>7.92</td>
+      <td>&lt;rdkit.Chem.rdchem.Mol object at 0x1360c25e0&gt;</td>
+      <td>O=c1cc(-c2ccc(O)cc2)oc2cc(O)cc(O)c12</td>
+      <td>[O][=C][C][=C][Branch1][N][C][=C][C][=C][Branc...</td>
+      <td>InChI=1S/C15H10O5/c16-9-3-1-8(2-4-9)13-7-12(19...</td>
+      <td>KZNIFHPLKGYRTM-UHFFFAOYSA-N</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+</div>
+<p><br></p>
+</section>
+<section id="scikit_mol" class="level6">
+<h6 class="anchored" data-anchor-id="scikit_mol"><strong>scikit_mol</strong></h6>
+<p>Scikit_mol was a package originated from 2022 RDKit UGM hackathon. This <a href="https://www.cheminformania.com/scikit-mol-easy-embedding-of-rdkit-into-scikit-learn/">blog post</a> elaborated further on its functions and uses in machine learning. For this post I’ve only used it for a very small portion, mainly to check for missing SMILES or errors in SMILES (kind of like double checking whether my preprocess function code worked as expected). It could be integrated with scikit-learn’s pipeline method on multiple estimators. GitHub Repository link: https://github.com/EBjerrum/scikit-mol</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Quick simple way to check for missing SMILES</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'Dataset contains </span><span class="sc">{</span>df_prep<span class="sc">.</span>standard_smiles<span class="sc">.</span>isna()<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> unparsable mols'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Dataset contains 0 unparsable mols</code></pre>
+</div>
+</div>
+<p>It appeared to have no unparsable (missing) molecules.</p>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Checking for invalid SMILES using scikit_mol</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>smileschecker <span class="op">=</span> CheckSmilesSanitazion()</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>smileschecker.sanitize(<span class="bu">list</span>(df_prep.standard_smiles))</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Showing SMILES errors</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>smileschecker.errors</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>SMILES</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+</div>
+</div>
+</div>
+<p>It also confirmed that there were no errors in SMILES (as a second confirmation that the preprocessed molecules had no other unusual errors after using Datamol).</p>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Generate RDKit2D descriptors/fingerprints</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Running rdkit_2d_descriptors function</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>df_2d <span class="op">=</span> rdkit_2d_descriptors(df_prep)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>df_2d</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>MaxAbsEStateIndex</th>
+      <th>MaxEStateIndex</th>
+      <th>MinAbsEStateIndex</th>
+      <th>MinEStateIndex</th>
+      <th>qed</th>
+      <th>SPS</th>
+      <th>MolWt</th>
+      <th>HeavyAtomMolWt</th>
+      <th>ExactMolWt</th>
+      <th>NumValenceElectrons</th>
+      <th>...</th>
+      <th>fr_sulfide</th>
+      <th>fr_sulfonamd</th>
+      <th>fr_sulfone</th>
+      <th>fr_term_acetylene</th>
+      <th>fr_tetrazole</th>
+      <th>fr_thiazole</th>
+      <th>fr_thiocyan</th>
+      <th>fr_thiophene</th>
+      <th>fr_unbrch_alkane</th>
+      <th>fr_urea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>9.410680</td>
+      <td>9.410680</td>
+      <td>0.284153</td>
+      <td>0.284153</td>
+      <td>0.779698</td>
+      <td>12.100000</td>
+      <td>268.356000</td>
+      <td>248.196000</td>
+      <td>268.146330</td>
+      <td>104</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>11.173100</td>
+      <td>11.173100</td>
+      <td>0.405828</td>
+      <td>-0.405828</td>
+      <td>0.586359</td>
+      <td>11.062500</td>
+      <td>216.192000</td>
+      <td>208.128000</td>
+      <td>216.042259</td>
+      <td>80</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>11.173100</td>
+      <td>11.173100</td>
+      <td>0.405828</td>
+      <td>-0.405828</td>
+      <td>0.586359</td>
+      <td>11.062500</td>
+      <td>216.192000</td>
+      <td>208.128000</td>
+      <td>216.042259</td>
+      <td>80</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>11.591481</td>
+      <td>11.591481</td>
+      <td>0.189306</td>
+      <td>-0.309798</td>
+      <td>0.886859</td>
+      <td>23.608696</td>
+      <td>333.453000</td>
+      <td>310.269000</td>
+      <td>333.139865</td>
+      <td>124</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>12.020910</td>
+      <td>12.020910</td>
+      <td>0.018823</td>
+      <td>-0.410347</td>
+      <td>0.631833</td>
+      <td>10.800000</td>
+      <td>270.240000</td>
+      <td>260.160000</td>
+      <td>270.052823</td>
+      <td>100</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>7139</th>
+      <td>11.547942</td>
+      <td>11.547942</td>
+      <td>0.062169</td>
+      <td>-0.810432</td>
+      <td>0.750636</td>
+      <td>12.818182</td>
+      <td>310.394000</td>
+      <td>284.186000</td>
+      <td>310.189257</td>
+      <td>124</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>7140</th>
+      <td>12.354746</td>
+      <td>12.354746</td>
+      <td>0.126418</td>
+      <td>-0.615512</td>
+      <td>0.522384</td>
+      <td>15.222222</td>
+      <td>377.485000</td>
+      <td>346.237000</td>
+      <td>377.231456</td>
+      <td>150</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>7141</th>
+      <td>11.771511</td>
+      <td>11.771511</td>
+      <td>0.150711</td>
+      <td>0.150711</td>
+      <td>0.493601</td>
+      <td>16.769231</td>
+      <td>393.574000</td>
+      <td>366.358000</td>
+      <td>393.143236</td>
+      <td>142</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>7142</th>
+      <td>12.850331</td>
+      <td>12.850331</td>
+      <td>0.023599</td>
+      <td>-0.023599</td>
+      <td>0.515406</td>
+      <td>14.366667</td>
+      <td>398.466000</td>
+      <td>376.290000</td>
+      <td>398.174276</td>
+      <td>150</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>7143</th>
+      <td>11.721089</td>
+      <td>11.721089</td>
+      <td>0.389678</td>
+      <td>-0.478126</td>
+      <td>0.620639</td>
+      <td>10.285714</td>
+      <td>288.311434</td>
+      <td>271.175434</td>
+      <td>288.129717</td>
+      <td>110</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>7144 rows × 210 columns</p>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge dataframes df_prep &amp; df_2d via index</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>df_merge <span class="op">=</span> pd.merge(</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    df_prep[[<span class="st">"max_phase"</span>, <span class="st">"molecule_chembl_id"</span>]],</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    df_2d,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    left_index<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    right_index<span class="op">=</span><span class="va">True</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df_merge.shape)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>df_merge.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(7144, 212)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>max_phase</th>
+      <th>molecule_chembl_id</th>
+      <th>MaxAbsEStateIndex</th>
+      <th>MaxEStateIndex</th>
+      <th>MinAbsEStateIndex</th>
+      <th>MinEStateIndex</th>
+      <th>qed</th>
+      <th>SPS</th>
+      <th>MolWt</th>
+      <th>HeavyAtomMolWt</th>
+      <th>...</th>
+      <th>fr_sulfide</th>
+      <th>fr_sulfonamd</th>
+      <th>fr_sulfone</th>
+      <th>fr_term_acetylene</th>
+      <th>fr_tetrazole</th>
+      <th>fr_thiazole</th>
+      <th>fr_thiocyan</th>
+      <th>fr_thiophene</th>
+      <th>fr_unbrch_alkane</th>
+      <th>fr_urea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>4.0</td>
+      <td>CHEMBL411</td>
+      <td>9.410680</td>
+      <td>9.410680</td>
+      <td>0.284153</td>
+      <td>0.284153</td>
+      <td>0.779698</td>
+      <td>12.100000</td>
+      <td>268.356</td>
+      <td>248.196</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>4.0</td>
+      <td>CHEMBL416</td>
+      <td>11.173100</td>
+      <td>11.173100</td>
+      <td>0.405828</td>
+      <td>-0.405828</td>
+      <td>0.586359</td>
+      <td>11.062500</td>
+      <td>216.192</td>
+      <td>208.128</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>4.0</td>
+      <td>CHEMBL416</td>
+      <td>11.173100</td>
+      <td>11.173100</td>
+      <td>0.405828</td>
+      <td>-0.405828</td>
+      <td>0.586359</td>
+      <td>11.062500</td>
+      <td>216.192</td>
+      <td>208.128</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>-1.0</td>
+      <td>CHEMBL7002</td>
+      <td>11.591481</td>
+      <td>11.591481</td>
+      <td>0.189306</td>
+      <td>-0.309798</td>
+      <td>0.886859</td>
+      <td>23.608696</td>
+      <td>333.453</td>
+      <td>310.269</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>NaN</td>
+      <td>CHEMBL28</td>
+      <td>12.020910</td>
+      <td>12.020910</td>
+      <td>0.018823</td>
+      <td>-0.410347</td>
+      <td>0.631833</td>
+      <td>10.800000</td>
+      <td>270.240</td>
+      <td>260.160</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 212 columns</p>
+</div>
+</div>
+</div>
+<p>Different spreads of max phases were shown as the SQL query mainly used IC50 (whereas last post was strictly limited to Ki via ChEMBL web resource client). Other reason was that in the decision tree series, I attempted data preprocessing at a larger scale (which eliminated some data). So, it appeared that there were more max phase 4 compounds here than last time (Note: null compounds were not shown in the value counts here as it was labelled as “NaN”, but it should be the largest portion of max phase in the data).</p>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find out counts of each max phase</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>df_merge.value_counts(<span class="st">"max_phase"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<pre><code>max_phase
+ 4.0    618
+-1.0     69
+ 2.0     29
+ 3.0     10
+ 1.0      7
+ 0.5      1
+Name: count, dtype: int64</code></pre>
+</div>
+</div>
+<p>I then tried searching for the chembl_id of the 10 max phase 4 compounds used in the last post in df_merge.</p>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Previously used 10 max phase 4 compounds</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co"># donepezil = CHEMBL502 </span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># galantamine = CHEMBL659</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>list_mp4 <span class="op">=</span> [<span class="st">"CHEMBL95"</span>, <span class="st">"CHEMBL1128"</span>, <span class="st">"CHEMBL640"</span>, <span class="st">"CHEMBL502"</span>, <span class="st">"CHEMBL481"</span>, <span class="st">"CHEMBL360055"</span>, <span class="st">"CHEMBL1025"</span>, <span class="st">"CHEMBL659"</span>, <span class="st">"CHEMBL1200970"</span>, <span class="st">"CHEMBL1677"</span>]</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Search for compounds in list_mp4 within df_merge's "molecule_chembl_id" column</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="co"># using Series.isin</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>df_prev <span class="op">=</span> df_merge.loc[df_merge[<span class="st">"molecule_chembl_id"</span>].isin(list_mp4)]</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>df_prev</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>max_phase</th>
+      <th>molecule_chembl_id</th>
+      <th>MaxAbsEStateIndex</th>
+      <th>MaxEStateIndex</th>
+      <th>MinAbsEStateIndex</th>
+      <th>MinEStateIndex</th>
+      <th>qed</th>
+      <th>SPS</th>
+      <th>MolWt</th>
+      <th>HeavyAtomMolWt</th>
+      <th>...</th>
+      <th>fr_sulfide</th>
+      <th>fr_sulfonamd</th>
+      <th>fr_sulfone</th>
+      <th>fr_term_acetylene</th>
+      <th>fr_tetrazole</th>
+      <th>fr_thiazole</th>
+      <th>fr_thiocyan</th>
+      <th>fr_thiophene</th>
+      <th>fr_unbrch_alkane</th>
+      <th>fr_urea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>9</th>
+      <td>4.0</td>
+      <td>CHEMBL481</td>
+      <td>13.581173</td>
+      <td>13.581173</td>
+      <td>0.095133</td>
+      <td>-1.863974</td>
+      <td>0.355956</td>
+      <td>22.209302</td>
+      <td>586.689</td>
+      <td>548.385</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>4.0</td>
+      <td>CHEMBL481</td>
+      <td>13.581173</td>
+      <td>13.581173</td>
+      <td>0.095133</td>
+      <td>-1.863974</td>
+      <td>0.355956</td>
+      <td>22.209302</td>
+      <td>586.689</td>
+      <td>548.385</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>67</th>
+      <td>4.0</td>
+      <td>CHEMBL95</td>
+      <td>6.199769</td>
+      <td>6.199769</td>
+      <td>0.953981</td>
+      <td>0.953981</td>
+      <td>0.706488</td>
+      <td>15.200000</td>
+      <td>198.269</td>
+      <td>184.157</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>68</th>
+      <td>4.0</td>
+      <td>CHEMBL95</td>
+      <td>6.199769</td>
+      <td>6.199769</td>
+      <td>0.953981</td>
+      <td>0.953981</td>
+      <td>0.706488</td>
+      <td>15.200000</td>
+      <td>198.269</td>
+      <td>184.157</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>69</th>
+      <td>4.0</td>
+      <td>CHEMBL95</td>
+      <td>6.199769</td>
+      <td>6.199769</td>
+      <td>0.953981</td>
+      <td>0.953981</td>
+      <td>0.706488</td>
+      <td>15.200000</td>
+      <td>198.269</td>
+      <td>184.157</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>3272</th>
+      <td>4.0</td>
+      <td>CHEMBL1200970</td>
+      <td>2.520809</td>
+      <td>2.520809</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.709785</td>
+      <td>14.000000</td>
+      <td>348.943</td>
+      <td>323.743</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3273</th>
+      <td>4.0</td>
+      <td>CHEMBL1200970</td>
+      <td>2.520809</td>
+      <td>2.520809</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.709785</td>
+      <td>14.000000</td>
+      <td>348.943</td>
+      <td>323.743</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3274</th>
+      <td>4.0</td>
+      <td>CHEMBL1200970</td>
+      <td>2.520809</td>
+      <td>2.520809</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.709785</td>
+      <td>14.000000</td>
+      <td>348.943</td>
+      <td>323.743</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3275</th>
+      <td>4.0</td>
+      <td>CHEMBL1200970</td>
+      <td>2.520809</td>
+      <td>2.520809</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.709785</td>
+      <td>14.000000</td>
+      <td>348.943</td>
+      <td>323.743</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3276</th>
+      <td>4.0</td>
+      <td>CHEMBL1200970</td>
+      <td>2.520809</td>
+      <td>2.520809</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.709785</td>
+      <td>14.000000</td>
+      <td>348.943</td>
+      <td>323.743</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>439 rows × 212 columns</p>
+</div>
+</div>
+</div>
+<p>There were many duplicates of compounds.</p>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Some compounds with duplicates</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df_prev.shape)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>df_prev.value_counts(<span class="st">"molecule_chembl_id"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(439, 212)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<pre><code>molecule_chembl_id
+CHEMBL95         182
+CHEMBL502        143
+CHEMBL659         76
+CHEMBL1128        12
+CHEMBL1677        10
+CHEMBL1200970      6
+CHEMBL640          4
+CHEMBL1025         3
+CHEMBL481          2
+CHEMBL360055       1
+Name: count, dtype: int64</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dropping duplicated compound via chembl IDs in the main df</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>df_merge_new <span class="op">=</span> df_merge.drop_duplicates(subset<span class="op">=</span>[<span class="st">"molecule_chembl_id"</span>], keep<span class="op">=</span><span class="st">"first"</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df_merge_new.shape)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>df_merge_new.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(5357, 212)</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>max_phase</th>
+      <th>molecule_chembl_id</th>
+      <th>MaxAbsEStateIndex</th>
+      <th>MaxEStateIndex</th>
+      <th>MinAbsEStateIndex</th>
+      <th>MinEStateIndex</th>
+      <th>qed</th>
+      <th>SPS</th>
+      <th>MolWt</th>
+      <th>HeavyAtomMolWt</th>
+      <th>...</th>
+      <th>fr_sulfide</th>
+      <th>fr_sulfonamd</th>
+      <th>fr_sulfone</th>
+      <th>fr_term_acetylene</th>
+      <th>fr_tetrazole</th>
+      <th>fr_thiazole</th>
+      <th>fr_thiocyan</th>
+      <th>fr_thiophene</th>
+      <th>fr_unbrch_alkane</th>
+      <th>fr_urea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>4.0</td>
+      <td>CHEMBL411</td>
+      <td>9.410680</td>
+      <td>9.410680</td>
+      <td>0.284153</td>
+      <td>0.284153</td>
+      <td>0.779698</td>
+      <td>12.100000</td>
+      <td>268.356</td>
+      <td>248.196</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>4.0</td>
+      <td>CHEMBL416</td>
+      <td>11.173100</td>
+      <td>11.173100</td>
+      <td>0.405828</td>
+      <td>-0.405828</td>
+      <td>0.586359</td>
+      <td>11.062500</td>
+      <td>216.192</td>
+      <td>208.128</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>-1.0</td>
+      <td>CHEMBL7002</td>
+      <td>11.591481</td>
+      <td>11.591481</td>
+      <td>0.189306</td>
+      <td>-0.309798</td>
+      <td>0.886859</td>
+      <td>23.608696</td>
+      <td>333.453</td>
+      <td>310.269</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>NaN</td>
+      <td>CHEMBL28</td>
+      <td>12.020910</td>
+      <td>12.020910</td>
+      <td>0.018823</td>
+      <td>-0.410347</td>
+      <td>0.631833</td>
+      <td>10.800000</td>
+      <td>270.240</td>
+      <td>260.160</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>4.0</td>
+      <td>CHEMBL41</td>
+      <td>12.564531</td>
+      <td>12.564531</td>
+      <td>0.203346</td>
+      <td>-4.329869</td>
+      <td>0.851796</td>
+      <td>12.909091</td>
+      <td>309.331</td>
+      <td>291.187</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 212 columns</p>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Previously used 10 max phase 4 compounds were found in df_merge_new</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>df_mp4 <span class="op">=</span> df_merge_new.loc[df_merge_new[<span class="st">"molecule_chembl_id"</span>].isin(list_mp4)]</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>df_mp4</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>max_phase</th>
+      <th>molecule_chembl_id</th>
+      <th>MaxAbsEStateIndex</th>
+      <th>MaxEStateIndex</th>
+      <th>MinAbsEStateIndex</th>
+      <th>MinEStateIndex</th>
+      <th>qed</th>
+      <th>SPS</th>
+      <th>MolWt</th>
+      <th>HeavyAtomMolWt</th>
+      <th>...</th>
+      <th>fr_sulfide</th>
+      <th>fr_sulfonamd</th>
+      <th>fr_sulfone</th>
+      <th>fr_term_acetylene</th>
+      <th>fr_tetrazole</th>
+      <th>fr_thiazole</th>
+      <th>fr_thiocyan</th>
+      <th>fr_thiophene</th>
+      <th>fr_unbrch_alkane</th>
+      <th>fr_urea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>9</th>
+      <td>4.0</td>
+      <td>CHEMBL481</td>
+      <td>13.581173</td>
+      <td>13.581173</td>
+      <td>0.095133</td>
+      <td>-1.863974</td>
+      <td>0.355956</td>
+      <td>22.209302</td>
+      <td>586.689</td>
+      <td>548.385</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>67</th>
+      <td>4.0</td>
+      <td>CHEMBL95</td>
+      <td>6.199769</td>
+      <td>6.199769</td>
+      <td>0.953981</td>
+      <td>0.953981</td>
+      <td>0.706488</td>
+      <td>15.200000</td>
+      <td>198.269</td>
+      <td>184.157</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>249</th>
+      <td>4.0</td>
+      <td>CHEMBL502</td>
+      <td>12.936933</td>
+      <td>12.936933</td>
+      <td>0.108783</td>
+      <td>0.108783</td>
+      <td>0.747461</td>
+      <td>20.214286</td>
+      <td>379.500</td>
+      <td>350.268</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>508</th>
+      <td>4.0</td>
+      <td>CHEMBL640</td>
+      <td>11.743677</td>
+      <td>11.743677</td>
+      <td>0.044300</td>
+      <td>-0.044300</td>
+      <td>0.731540</td>
+      <td>10.529412</td>
+      <td>235.331</td>
+      <td>214.163</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>512</th>
+      <td>4.0</td>
+      <td>CHEMBL659</td>
+      <td>9.972866</td>
+      <td>9.972866</td>
+      <td>0.008380</td>
+      <td>-0.411699</td>
+      <td>0.800524</td>
+      <td>33.857143</td>
+      <td>287.359</td>
+      <td>266.191</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1013</th>
+      <td>4.0</td>
+      <td>CHEMBL1025</td>
+      <td>12.703056</td>
+      <td>12.703056</td>
+      <td>0.426312</td>
+      <td>-4.304784</td>
+      <td>0.629869</td>
+      <td>13.000000</td>
+      <td>184.147</td>
+      <td>170.035</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1345</th>
+      <td>4.0</td>
+      <td>CHEMBL1128</td>
+      <td>9.261910</td>
+      <td>9.261910</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.608112</td>
+      <td>10.692308</td>
+      <td>201.697</td>
+      <td>185.569</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2028</th>
+      <td>4.0</td>
+      <td>CHEMBL360055</td>
+      <td>6.476818</td>
+      <td>6.476818</td>
+      <td>0.656759</td>
+      <td>0.656759</td>
+      <td>0.205822</td>
+      <td>12.583333</td>
+      <td>510.828</td>
+      <td>450.348</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2725</th>
+      <td>4.0</td>
+      <td>CHEMBL1677</td>
+      <td>6.199769</td>
+      <td>6.199769</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.760853</td>
+      <td>14.250000</td>
+      <td>234.730</td>
+      <td>219.610</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3271</th>
+      <td>4.0</td>
+      <td>CHEMBL1200970</td>
+      <td>2.520809</td>
+      <td>2.520809</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.709785</td>
+      <td>14.000000</td>
+      <td>348.943</td>
+      <td>323.743</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>10 rows × 212 columns</p>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># note: compounds with max phase 0 not shown in the count</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>df_merge_new.value_counts(<span class="st">"max_phase"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<pre><code>max_phase
+ 4.0    55
+-1.0    26
+ 2.0     8
+ 3.0     7
+ 1.0     4
+ 0.5     1
+Name: count, dtype: int64</code></pre>
+</div>
+</div>
+<p><br></p>
+</section>
+</section>
+<section id="model-building" class="level5">
+<h5 class="anchored" data-anchor-id="model-building"><strong>Model building</strong></h5>
+<p>The aim was to model and classify the max phase of ChEMBL small molecules - max phase 4 or not: - <em>target</em>: max_phase - <em>features</em>: various RDKit 2D descriptors (RDKit2D)</p>
+<ol type="1">
+<li>Re-labelled max phases as binary labels (e.g.&nbsp;max phase null as 0, max phase 4 as 1)</li>
+</ol>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Re-label max phase NaN as 0</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>df_merge_new <span class="op">=</span> df_merge_new.fillna(<span class="dv">0</span>)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>df_merge_new</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>max_phase</th>
+      <th>molecule_chembl_id</th>
+      <th>MaxAbsEStateIndex</th>
+      <th>MaxEStateIndex</th>
+      <th>MinAbsEStateIndex</th>
+      <th>MinEStateIndex</th>
+      <th>qed</th>
+      <th>SPS</th>
+      <th>MolWt</th>
+      <th>HeavyAtomMolWt</th>
+      <th>...</th>
+      <th>fr_sulfide</th>
+      <th>fr_sulfonamd</th>
+      <th>fr_sulfone</th>
+      <th>fr_term_acetylene</th>
+      <th>fr_tetrazole</th>
+      <th>fr_thiazole</th>
+      <th>fr_thiocyan</th>
+      <th>fr_thiophene</th>
+      <th>fr_unbrch_alkane</th>
+      <th>fr_urea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>4.0</td>
+      <td>CHEMBL411</td>
+      <td>9.410680</td>
+      <td>9.410680</td>
+      <td>0.284153</td>
+      <td>0.284153</td>
+      <td>0.779698</td>
+      <td>12.100000</td>
+      <td>268.356000</td>
+      <td>248.196000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>4.0</td>
+      <td>CHEMBL416</td>
+      <td>11.173100</td>
+      <td>11.173100</td>
+      <td>0.405828</td>
+      <td>-0.405828</td>
+      <td>0.586359</td>
+      <td>11.062500</td>
+      <td>216.192000</td>
+      <td>208.128000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>-1.0</td>
+      <td>CHEMBL7002</td>
+      <td>11.591481</td>
+      <td>11.591481</td>
+      <td>0.189306</td>
+      <td>-0.309798</td>
+      <td>0.886859</td>
+      <td>23.608696</td>
+      <td>333.453000</td>
+      <td>310.269000</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.0</td>
+      <td>CHEMBL28</td>
+      <td>12.020910</td>
+      <td>12.020910</td>
+      <td>0.018823</td>
+      <td>-0.410347</td>
+      <td>0.631833</td>
+      <td>10.800000</td>
+      <td>270.240000</td>
+      <td>260.160000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>4.0</td>
+      <td>CHEMBL41</td>
+      <td>12.564531</td>
+      <td>12.564531</td>
+      <td>0.203346</td>
+      <td>-4.329869</td>
+      <td>0.851796</td>
+      <td>12.909091</td>
+      <td>309.331000</td>
+      <td>291.187000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>7139</th>
+      <td>0.0</td>
+      <td>CHEMBL5220560</td>
+      <td>11.547942</td>
+      <td>11.547942</td>
+      <td>0.062169</td>
+      <td>-0.810432</td>
+      <td>0.750636</td>
+      <td>12.818182</td>
+      <td>310.394000</td>
+      <td>284.186000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>7140</th>
+      <td>0.0</td>
+      <td>CHEMBL5220695</td>
+      <td>12.354746</td>
+      <td>12.354746</td>
+      <td>0.126418</td>
+      <td>-0.615512</td>
+      <td>0.522384</td>
+      <td>15.222222</td>
+      <td>377.485000</td>
+      <td>346.237000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>7141</th>
+      <td>0.0</td>
+      <td>CHEMBL5220742</td>
+      <td>11.771511</td>
+      <td>11.771511</td>
+      <td>0.150711</td>
+      <td>0.150711</td>
+      <td>0.493601</td>
+      <td>16.769231</td>
+      <td>393.574000</td>
+      <td>366.358000</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>7142</th>
+      <td>0.0</td>
+      <td>CHEMBL5220884</td>
+      <td>12.850331</td>
+      <td>12.850331</td>
+      <td>0.023599</td>
+      <td>-0.023599</td>
+      <td>0.515406</td>
+      <td>14.366667</td>
+      <td>398.466000</td>
+      <td>376.290000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>7143</th>
+      <td>0.0</td>
+      <td>CHEMBL5220983</td>
+      <td>11.721089</td>
+      <td>11.721089</td>
+      <td>0.389678</td>
+      <td>-0.478126</td>
+      <td>0.620639</td>
+      <td>10.285714</td>
+      <td>288.311434</td>
+      <td>271.175434</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>5357 rows × 212 columns</p>
+</div>
+</div>
+</div>
+<ol start="2" type="1">
+<li>Splitting data into max phase null &amp; max phase 4 (reason being needing to re-label max phase 4 column only as 1, and not disrupting max phase 0 compounds)</li>
+</ol>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Select all max phase null compounds</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>df_null <span class="op">=</span> df_merge_new[df_merge_new[<span class="st">"max_phase"</span>] <span class="op">==</span> <span class="dv">0</span>]</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df_null.shape)</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>df_null.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(5256, 212)</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="20">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>max_phase</th>
+      <th>molecule_chembl_id</th>
+      <th>MaxAbsEStateIndex</th>
+      <th>MaxEStateIndex</th>
+      <th>MinAbsEStateIndex</th>
+      <th>MinEStateIndex</th>
+      <th>qed</th>
+      <th>SPS</th>
+      <th>MolWt</th>
+      <th>HeavyAtomMolWt</th>
+      <th>...</th>
+      <th>fr_sulfide</th>
+      <th>fr_sulfonamd</th>
+      <th>fr_sulfone</th>
+      <th>fr_term_acetylene</th>
+      <th>fr_tetrazole</th>
+      <th>fr_thiazole</th>
+      <th>fr_thiocyan</th>
+      <th>fr_thiophene</th>
+      <th>fr_unbrch_alkane</th>
+      <th>fr_urea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>4</th>
+      <td>0.0</td>
+      <td>CHEMBL28</td>
+      <td>12.020910</td>
+      <td>12.020910</td>
+      <td>0.018823</td>
+      <td>-0.410347</td>
+      <td>0.631833</td>
+      <td>10.800000</td>
+      <td>270.240</td>
+      <td>260.160</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0.0</td>
+      <td>CHEMBL8320</td>
+      <td>10.282778</td>
+      <td>10.282778</td>
+      <td>0.120741</td>
+      <td>-0.120741</td>
+      <td>0.416681</td>
+      <td>17.500000</td>
+      <td>108.096</td>
+      <td>104.064</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>0.0</td>
+      <td>CHEMBL11833</td>
+      <td>11.201531</td>
+      <td>11.201531</td>
+      <td>0.428520</td>
+      <td>-0.466092</td>
+      <td>0.838024</td>
+      <td>25.157895</td>
+      <td>262.309</td>
+      <td>244.165</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>392</th>
+      <td>0.0</td>
+      <td>CHEMBL12324</td>
+      <td>11.257704</td>
+      <td>11.257704</td>
+      <td>0.462395</td>
+      <td>-0.462395</td>
+      <td>0.797990</td>
+      <td>26.150000</td>
+      <td>277.344</td>
+      <td>256.176</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>393</th>
+      <td>0.0</td>
+      <td>CHEMBL274107</td>
+      <td>11.359778</td>
+      <td>11.359778</td>
+      <td>0.372211</td>
+      <td>-0.473241</td>
+      <td>0.838024</td>
+      <td>25.157895</td>
+      <td>262.309</td>
+      <td>244.165</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 212 columns</p>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using pd.DataFrame.assign to add a new column to re-label max_phase 4 into "1"</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>df_mp4_lb <span class="op">=</span> df_mp4.assign(max_phase_lb <span class="op">=</span> df_mp4[<span class="st">"max_phase"</span>] <span class="op">/</span> <span class="dv">4</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Using pd.DataFrame.pop() &amp; insert() to shift added column to first column position</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>first_col <span class="op">=</span> df_mp4_lb.pop(<span class="st">"max_phase_lb"</span>)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>df_mp4_lb.insert(<span class="dv">0</span>, <span class="st">"max_phase_lb"</span>, first_col)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>df_mp4_lb</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>max_phase_lb</th>
+      <th>max_phase</th>
+      <th>molecule_chembl_id</th>
+      <th>MaxAbsEStateIndex</th>
+      <th>MaxEStateIndex</th>
+      <th>MinAbsEStateIndex</th>
+      <th>MinEStateIndex</th>
+      <th>qed</th>
+      <th>SPS</th>
+      <th>MolWt</th>
+      <th>...</th>
+      <th>fr_sulfide</th>
+      <th>fr_sulfonamd</th>
+      <th>fr_sulfone</th>
+      <th>fr_term_acetylene</th>
+      <th>fr_tetrazole</th>
+      <th>fr_thiazole</th>
+      <th>fr_thiocyan</th>
+      <th>fr_thiophene</th>
+      <th>fr_unbrch_alkane</th>
+      <th>fr_urea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>9</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL481</td>
+      <td>13.581173</td>
+      <td>13.581173</td>
+      <td>0.095133</td>
+      <td>-1.863974</td>
+      <td>0.355956</td>
+      <td>22.209302</td>
+      <td>586.689</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>67</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL95</td>
+      <td>6.199769</td>
+      <td>6.199769</td>
+      <td>0.953981</td>
+      <td>0.953981</td>
+      <td>0.706488</td>
+      <td>15.200000</td>
+      <td>198.269</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>249</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL502</td>
+      <td>12.936933</td>
+      <td>12.936933</td>
+      <td>0.108783</td>
+      <td>0.108783</td>
+      <td>0.747461</td>
+      <td>20.214286</td>
+      <td>379.500</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>508</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL640</td>
+      <td>11.743677</td>
+      <td>11.743677</td>
+      <td>0.044300</td>
+      <td>-0.044300</td>
+      <td>0.731540</td>
+      <td>10.529412</td>
+      <td>235.331</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>512</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL659</td>
+      <td>9.972866</td>
+      <td>9.972866</td>
+      <td>0.008380</td>
+      <td>-0.411699</td>
+      <td>0.800524</td>
+      <td>33.857143</td>
+      <td>287.359</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1013</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL1025</td>
+      <td>12.703056</td>
+      <td>12.703056</td>
+      <td>0.426312</td>
+      <td>-4.304784</td>
+      <td>0.629869</td>
+      <td>13.000000</td>
+      <td>184.147</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1345</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL1128</td>
+      <td>9.261910</td>
+      <td>9.261910</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.608112</td>
+      <td>10.692308</td>
+      <td>201.697</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2028</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL360055</td>
+      <td>6.476818</td>
+      <td>6.476818</td>
+      <td>0.656759</td>
+      <td>0.656759</td>
+      <td>0.205822</td>
+      <td>12.583333</td>
+      <td>510.828</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2725</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL1677</td>
+      <td>6.199769</td>
+      <td>6.199769</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.760853</td>
+      <td>14.250000</td>
+      <td>234.730</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3271</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL1200970</td>
+      <td>2.520809</td>
+      <td>2.520809</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.709785</td>
+      <td>14.000000</td>
+      <td>348.943</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>10 rows × 213 columns</p>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Also create a new column max_phase_lb column for df_null to merge 2 dfs together</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>df_null_lb <span class="op">=</span> df_null.assign(max_phase_lb <span class="op">=</span> df_null[<span class="st">"max_phase"</span>])</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>first_col_null <span class="op">=</span> df_null_lb.pop(<span class="st">"max_phase_lb"</span>)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>df_null_lb.insert(<span class="dv">0</span>, <span class="st">"max_phase_lb"</span>, first_col_null)</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>df_null_lb.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>max_phase_lb</th>
+      <th>max_phase</th>
+      <th>molecule_chembl_id</th>
+      <th>MaxAbsEStateIndex</th>
+      <th>MaxEStateIndex</th>
+      <th>MinAbsEStateIndex</th>
+      <th>MinEStateIndex</th>
+      <th>qed</th>
+      <th>SPS</th>
+      <th>MolWt</th>
+      <th>...</th>
+      <th>fr_sulfide</th>
+      <th>fr_sulfonamd</th>
+      <th>fr_sulfone</th>
+      <th>fr_term_acetylene</th>
+      <th>fr_tetrazole</th>
+      <th>fr_thiazole</th>
+      <th>fr_thiocyan</th>
+      <th>fr_thiophene</th>
+      <th>fr_unbrch_alkane</th>
+      <th>fr_urea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>4</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>CHEMBL28</td>
+      <td>12.020910</td>
+      <td>12.020910</td>
+      <td>0.018823</td>
+      <td>-0.410347</td>
+      <td>0.631833</td>
+      <td>10.800000</td>
+      <td>270.240</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>CHEMBL8320</td>
+      <td>10.282778</td>
+      <td>10.282778</td>
+      <td>0.120741</td>
+      <td>-0.120741</td>
+      <td>0.416681</td>
+      <td>17.500000</td>
+      <td>108.096</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>CHEMBL11833</td>
+      <td>11.201531</td>
+      <td>11.201531</td>
+      <td>0.428520</td>
+      <td>-0.466092</td>
+      <td>0.838024</td>
+      <td>25.157895</td>
+      <td>262.309</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>392</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>CHEMBL12324</td>
+      <td>11.257704</td>
+      <td>11.257704</td>
+      <td>0.462395</td>
+      <td>-0.462395</td>
+      <td>0.797990</td>
+      <td>26.150000</td>
+      <td>277.344</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>393</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>CHEMBL274107</td>
+      <td>11.359778</td>
+      <td>11.359778</td>
+      <td>0.372211</td>
+      <td>-0.473241</td>
+      <td>0.838024</td>
+      <td>25.157895</td>
+      <td>262.309</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 213 columns</p>
+</div>
+</div>
+</div>
+<p>The two dataframes should share same column names which could be combined together.</p>
+<div class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Concatenate df_mp4_lb &amp; df_null_lb</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>df_full <span class="op">=</span> pd.concat([df_null_lb, df_mp4_lb])</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>df_full</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="23">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>max_phase_lb</th>
+      <th>max_phase</th>
+      <th>molecule_chembl_id</th>
+      <th>MaxAbsEStateIndex</th>
+      <th>MaxEStateIndex</th>
+      <th>MinAbsEStateIndex</th>
+      <th>MinEStateIndex</th>
+      <th>qed</th>
+      <th>SPS</th>
+      <th>MolWt</th>
+      <th>...</th>
+      <th>fr_sulfide</th>
+      <th>fr_sulfonamd</th>
+      <th>fr_sulfone</th>
+      <th>fr_term_acetylene</th>
+      <th>fr_tetrazole</th>
+      <th>fr_thiazole</th>
+      <th>fr_thiocyan</th>
+      <th>fr_thiophene</th>
+      <th>fr_unbrch_alkane</th>
+      <th>fr_urea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>4</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>CHEMBL28</td>
+      <td>12.020910</td>
+      <td>12.020910</td>
+      <td>0.018823</td>
+      <td>-0.410347</td>
+      <td>0.631833</td>
+      <td>10.800000</td>
+      <td>270.240</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>CHEMBL8320</td>
+      <td>10.282778</td>
+      <td>10.282778</td>
+      <td>0.120741</td>
+      <td>-0.120741</td>
+      <td>0.416681</td>
+      <td>17.500000</td>
+      <td>108.096</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>CHEMBL11833</td>
+      <td>11.201531</td>
+      <td>11.201531</td>
+      <td>0.428520</td>
+      <td>-0.466092</td>
+      <td>0.838024</td>
+      <td>25.157895</td>
+      <td>262.309</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>392</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>CHEMBL12324</td>
+      <td>11.257704</td>
+      <td>11.257704</td>
+      <td>0.462395</td>
+      <td>-0.462395</td>
+      <td>0.797990</td>
+      <td>26.150000</td>
+      <td>277.344</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>393</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>CHEMBL274107</td>
+      <td>11.359778</td>
+      <td>11.359778</td>
+      <td>0.372211</td>
+      <td>-0.473241</td>
+      <td>0.838024</td>
+      <td>25.157895</td>
+      <td>262.309</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>1013</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL1025</td>
+      <td>12.703056</td>
+      <td>12.703056</td>
+      <td>0.426312</td>
+      <td>-4.304784</td>
+      <td>0.629869</td>
+      <td>13.000000</td>
+      <td>184.147</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1345</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL1128</td>
+      <td>9.261910</td>
+      <td>9.261910</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.608112</td>
+      <td>10.692308</td>
+      <td>201.697</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2028</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL360055</td>
+      <td>6.476818</td>
+      <td>6.476818</td>
+      <td>0.656759</td>
+      <td>0.656759</td>
+      <td>0.205822</td>
+      <td>12.583333</td>
+      <td>510.828</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2725</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL1677</td>
+      <td>6.199769</td>
+      <td>6.199769</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.760853</td>
+      <td>14.250000</td>
+      <td>234.730</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3271</th>
+      <td>1.0</td>
+      <td>4.0</td>
+      <td>CHEMBL1200970</td>
+      <td>2.520809</td>
+      <td>2.520809</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.709785</td>
+      <td>14.000000</td>
+      <td>348.943</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>5266 rows × 213 columns</p>
+</div>
+</div>
+</div>
+<ol start="3" type="1">
+<li>Define X and y variables and train RF classifier model</li>
+</ol>
+<p>Eventually df_full contained 10 active compounds and 5256 inactive compounds, as shown from the value counts.</p>
+<div class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>df_full.value_counts(<span class="st">"max_phase_lb"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
+<pre><code>max_phase_lb
+0.0    5256
+1.0      10
+Name: count, dtype: int64</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cast max_phase_lb column into integer</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>df_full[<span class="st">"max_phase_lb"</span>] <span class="op">=</span> df_full[<span class="st">"max_phase_lb"</span>].astype(<span class="bu">int</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>df_full.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
+
+<div>
+
+<table class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th></th>
+      <th>max_phase_lb</th>
+      <th>max_phase</th>
+      <th>molecule_chembl_id</th>
+      <th>MaxAbsEStateIndex</th>
+      <th>MaxEStateIndex</th>
+      <th>MinAbsEStateIndex</th>
+      <th>MinEStateIndex</th>
+      <th>qed</th>
+      <th>SPS</th>
+      <th>MolWt</th>
+      <th>...</th>
+      <th>fr_sulfide</th>
+      <th>fr_sulfonamd</th>
+      <th>fr_sulfone</th>
+      <th>fr_term_acetylene</th>
+      <th>fr_tetrazole</th>
+      <th>fr_thiazole</th>
+      <th>fr_thiocyan</th>
+      <th>fr_thiophene</th>
+      <th>fr_unbrch_alkane</th>
+      <th>fr_urea</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>4</th>
+      <td>0</td>
+      <td>0.0</td>
+      <td>CHEMBL28</td>
+      <td>12.020910</td>
+      <td>12.020910</td>
+      <td>0.018823</td>
+      <td>-0.410347</td>
+      <td>0.631833</td>
+      <td>10.800000</td>
+      <td>270.240</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0</td>
+      <td>0.0</td>
+      <td>CHEMBL8320</td>
+      <td>10.282778</td>
+      <td>10.282778</td>
+      <td>0.120741</td>
+      <td>-0.120741</td>
+      <td>0.416681</td>
+      <td>17.500000</td>
+      <td>108.096</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>0</td>
+      <td>0.0</td>
+      <td>CHEMBL11833</td>
+      <td>11.201531</td>
+      <td>11.201531</td>
+      <td>0.428520</td>
+      <td>-0.466092</td>
+      <td>0.838024</td>
+      <td>25.157895</td>
+      <td>262.309</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>392</th>
+      <td>0</td>
+      <td>0.0</td>
+      <td>CHEMBL12324</td>
+      <td>11.257704</td>
+      <td>11.257704</td>
+      <td>0.462395</td>
+      <td>-0.462395</td>
+      <td>0.797990</td>
+      <td>26.150000</td>
+      <td>277.344</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>393</th>
+      <td>0</td>
+      <td>0.0</td>
+      <td>CHEMBL274107</td>
+      <td>11.359778</td>
+      <td>11.359778</td>
+      <td>0.372211</td>
+      <td>-0.473241</td>
+      <td>0.838024</td>
+      <td>25.157895</td>
+      <td>262.309</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 213 columns</p>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Defining X (features) &amp; y (target)</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> df_full.iloc[:, <span class="dv">3</span>:]</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df_full.iloc[:, <span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Checking the right data have been selected</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="28">
+<pre><code>4       0
+8       0
+14      0
+392     0
+393     0
+       ..
+1013    1
+1345    1
+2028    1
+2725    1
+3271    1
+Name: max_phase_lb, Length: 5266, dtype: int64</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert both X &amp; y to arrays</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> X.to_numpy()</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> y.to_numpy()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using train_test_split() this time to split data</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, y, test_size<span class="op">=</span><span class="fl">0.2</span>, stratify<span class="op">=</span>y, random_state<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Training RF classifier model</li>
+</ul>
+<p>Reference notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb</p>
+<div class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using RandomForestClassifier() to train model</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="co"># max_features = "sqrt" by default, I decided to show it explicitly in the code to make sure the right one was used</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>rfc <span class="op">=</span> RandomForestClassifier(max_depth<span class="op">=</span><span class="dv">3</span>, random_state<span class="op">=</span><span class="dv">1</span>, max_features<span class="op">=</span><span class="st">"sqrt"</span>, oob_score<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>rfc.fit(X_train, y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="31">
+<style>#sk-container-id-1 {color: black;}#sk-container-id-1 pre{padding: 0;}#sk-container-id-1 div.sk-toggleable {background-color: white;}#sk-container-id-1 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-1 label.sk-toggleable__label-arrow:before {content: "▸";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-1 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-1 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-1 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-1 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-1 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-1 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: "▾";}#sk-container-id-1 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-1 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-1 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-1 div.sk-parallel-item::after {content: "";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-1 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-serial::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-1 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-1 div.sk-item {position: relative;z-index: 1;}#sk-container-id-1 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-1 div.sk-item::before, #sk-container-id-1 div.sk-parallel-item::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-1 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-1 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-1 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-1 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-1 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-1 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-1 div.sk-label-container {text-align: center;}#sk-container-id-1 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-1 div.sk-text-repr-fallback {display: none;}</style><div id="sk-container-id-1" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>RandomForestClassifier(max_depth=3, oob_score=True, random_state=1)</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-1" type="checkbox" checked=""><label for="sk-estimator-id-1" class="sk-toggleable__label sk-toggleable__label-arrow">RandomForestClassifier</label><div class="sk-toggleable__content"><pre>RandomForestClassifier(max_depth=3, oob_score=True, random_state=1)</pre></div></div></div></div></div>
+</div>
+</div>
+<ol start="4" type="1">
+<li>Obtain the prediction probabilities on the testing data and show confusion matrix with classification metrics</li>
+</ol>
+<div class="cell" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract positive prediction probabilities for the testing set</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>test_probs <span class="op">=</span> rfc.predict_proba(X_test)[:, <span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>A useful web link on area under the receiver operating characteristic curve - https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc</p>
+<div class="cell" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Rather than re-inventing the wheel, the following function code for calculating metrics of the RF model was adapted from Landrum et al., from this notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> calc_metrics(y_test, test_probs, threshold <span class="op">=</span> <span class="fl">0.5</span>):</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Scores to differentiate between stated decision threshold (default = 0.5)</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>    scores <span class="op">=</span> [<span class="dv">1</span> <span class="cf">if</span> x<span class="op">&gt;=</span>threshold <span class="cf">else</span> <span class="dv">0</span> <span class="cf">for</span> x <span class="kw">in</span> test_probs]</span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate area under the receiver operating characteristic curve</span></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>    auc <span class="op">=</span> metrics.roc_auc_score(y_test, test_probs)</span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate Cohen's Kappa score</span></span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>    kappa <span class="op">=</span> metrics.cohen_kappa_score(y_test, scores)</span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Formulate the confusion matrix</span></span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>    confusion <span class="op">=</span> metrics.confusion_matrix(y_test, scores, labels <span class="op">=</span> <span class="bu">list</span>(<span class="bu">set</span>(y_test)))</span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'thresh: </span><span class="sc">%.2f</span><span class="st">, kappa: </span><span class="sc">%.3f</span><span class="st">, AUC test-set: </span><span class="sc">%.3f</span><span class="st">'</span><span class="op">%</span>(threshold, kappa, auc))</span>
+<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(confusion)</span>
+<span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(metrics.classification_report(y_test,scores))</span>
+<span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Initially I made a mistake when doing the data split, which created a problem with y_test which only contained one label in it (1 only), needs binary labels (0 &amp; 1)</p>
+<p>It was needed for roc_auc_score (measures true +ve &amp; false +ve rates).</p>
+<div class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show confusion matrix along with AUC and Cohen's Kappa</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>calc_metrics(y_test, test_probs, threshold <span class="op">=</span> <span class="fl">0.5</span>)</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a><span class="co"># This was an extreme case - as only 10 actives vs. 5256 inactives</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>thresh: 0.50, kappa: 0.000, AUC test-set: 0.536
+[[1052    0]
+ [   2    0]]
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1052
+           1       0.00      0.00      0.00         2
+
+    accuracy                           1.00      1054
+   macro avg       0.50      0.50      0.50      1054
+weighted avg       1.00      1.00      1.00      1054
+</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/Users/jenniferlin/ML2-2_random_forest/py3.10venv/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1469: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+/Users/jenniferlin/ML2-2_random_forest/py3.10venv/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1469: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+/Users/jenniferlin/ML2-2_random_forest/py3.10venv/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1469: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))</code></pre>
+</div>
+</div>
+<ol start="5" type="1">
+<li><p>two approaches from GHOST paper (main idea was optimising and shifting decision threshold):</p>
+<ul>
+<li><p>approach 1 (out-of-bag method, aimed for RF classifiers) based on RDKit blog post (ref. 41) - http://rdkit.blogspot.com/2018/11/working-with-unbalanced-data-part-i.html (<a href="https://nbviewer.org/github/greglandrum/rdkit_blog/blob/master/notebooks/Working%20with%20unbalanced%20data%20part%201.ipynb">viewable notebook version</a> via nbviewer)</p></li>
+<li><p>approach 2 led to Generalised threshold shifting (GHOST) procedure (could be used for any classification methods) - ghostml package</p></li>
+</ul></li>
+</ol>
+<p>I only used approach 2 here as both approaches were shown to be performing similarly in the paper, and also approach 1 was already described in a RDKit blog post.</p>
+<ul>
+<li>extract the prediction probabilities from the RF classifier trained model</li>
+</ul>
+<div class="cell" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the positive prediction probabilities of the training set</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>train_probs <span class="op">=</span> rfc.predict_proba(X_train)[:, <span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol start="6" type="1">
+<li>Shift decision threshold using ghostml in a postprocessing way (note: last post used re-sampling method in a preprocessing way)</li>
+</ol>
+<ul>
+<li>optimise the decision threshold using ghostml via testing various thresholds (in spaces of 0.05 with range of 0.05 to 0.5) - to search for the most optimal threshold with most maximised Cohen’s kappa</li>
+</ul>
+<div class="cell" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Setting up different decision thresholds in space of 0.05</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>thresholds <span class="op">=</span> np.<span class="bu">round</span>(np.arange(<span class="fl">0.05</span>,<span class="fl">0.55</span>,<span class="fl">0.05</span>),<span class="dv">2</span>)</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>thresholds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="36">
+<pre><code>array([0.05, 0.1 , 0.15, 0.2 , 0.25, 0.3 , 0.35, 0.4 , 0.45, 0.5 ])</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="37">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Looking for the best threshold with the most optimal Cohen's Kappa</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>new_threshold <span class="op">=</span> ghostml.optimize_threshold_from_predictions(y_train, train_probs, thresholds, ThOpt_metrics <span class="op">=</span> <span class="st">'ROC'</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="38">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the optimal decision threshold</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>new_threshold</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="38">
+<pre><code>0.1</code></pre>
+</div>
+</div>
+<ul>
+<li>calculate confusion matrix and classification metrics based on the optimised decision threshold</li>
+</ul>
+<div class="cell" data-execution_count="39">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using calc_metrics function again on the newly-found/shifted decision threshold</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="co"># It showed an improved classification outcome through the confusion matrix</span></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>calc_metrics(y_train, train_probs, threshold<span class="op">=</span>new_threshold)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>thresh: 0.10, kappa: 0.933, AUC test-set: 1.000
+[[4204    0]
+ [   1    7]]
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      4204
+           1       1.00      0.88      0.93         8
+
+    accuracy                           1.00      4212
+   macro avg       1.00      0.94      0.97      4212
+weighted avg       1.00      1.00      1.00      4212
+</code></pre>
+</div>
+</div>
+<p><br></p>
+</section>
+<section id="roc-curves" class="level5">
+<h5 class="anchored" data-anchor-id="roc-curves"><strong>ROC curves</strong></h5>
+<div class="cell" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> RocCurveDisplay, roc_curve</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="testing-set-roc-curve" class="level6">
+<h6 class="anchored" data-anchor-id="testing-set-roc-curve"><strong>Testing set ROC curve</strong></h6>
+<div class="cell" data-execution_count="41">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Testing set ROC curve</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>RocCurveDisplay.from_predictions(y_test, test_probs, plot_chance_level <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="41">
+<pre><code>&lt;sklearn.metrics._plot.roc_curve.RocCurveDisplay at 0x11e211300&gt;</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="2_random_forest_classifier_files/figure-html/cell-42-output-2.png" width="589" height="429"></p>
+</div>
+</div>
+<p><br></p>
+</section>
+<section id="training-set-roc-curve" class="level6">
+<h6 class="anchored" data-anchor-id="training-set-roc-curve"><strong>Training set ROC curve</strong></h6>
+<div class="cell" data-execution_count="42">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Training set ROC curve</span></span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>RocCurveDisplay.from_predictions(y_train, train_probs, plot_chance_level <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="42">
+<pre><code>&lt;sklearn.metrics._plot.roc_curve.RocCurveDisplay at 0x137753ac0&gt;</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="2_random_forest_classifier_files/figure-html/cell-43-output-2.png" width="589" height="429"></p>
+</div>
+</div>
+<p>Alternative ROC curve plotting method that would reproduce a similar plot:</p>
+<div class="cell" data-execution_count="43">
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Look for true positive rate (tpr), false positive rate (fpr) &amp; threshold</span></span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>fpr, tpr, thresh <span class="op">=</span> metrics.roc_curve(y_train, train_probs)</span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Plotting</span></span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>plt.figure()</span>
+<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a><span class="co"># lw = linewidth</span></span>
+<span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a>plt.plot(fpr, tpr, lw <span class="op">=</span> <span class="dv">2</span>)</span>
+<span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a><span class="co"># show random guessing line (threshold = 0.5)</span></span>
+<span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a>plt.plot([<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, <span class="dv">1</span>], color <span class="op">=</span> <span class="st">"g"</span>, lw <span class="op">=</span> <span class="dv">2</span>, linestyle<span class="op">=</span><span class="st">"--"</span>)</span>
+<span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a>plt.ylim([<span class="op">-</span><span class="fl">0.05</span>, <span class="fl">1.05</span>])</span>
+<span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a>plt.xlim([<span class="op">-</span><span class="fl">0.05</span>, <span class="fl">1.0</span>])</span>
+<span id="cb66-11"><a href="#cb66-11" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"specificity"</span>)</span>
+<span id="cb66-12"><a href="#cb66-12" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"recall"</span>)</span>
+<span id="cb66-13"><a href="#cb66-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="2_random_forest_classifier_files/figure-html/cell-44-output-1.png" width="599" height="429"></p>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
