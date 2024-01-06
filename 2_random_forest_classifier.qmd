@@ -2,7 +2,7 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2024-1-5'
+date: '2024-1-6'
 draft: true
 categories: 
     - Machine learning projects
@@ -147,17 +147,17 @@ df_prep.head()
 
 ###### **scikit_mol**
 
-Here, I'd like to introducing another package, scikit_mol, which actually originated from 2022 RDKit UGM hackathon. This [blog post](https://www.cheminformania.com/scikit-mol-easy-embedding-of-rdkit-into-scikit-learn/) added more explanations and code about it. However, for this post I've only used it for the purpose of checking for missing SMILES or errors in SMILES. It has other functions e.g. integrating with scikit-learn's pipeline method for multiple estimators. Its GitHub Repo: https://github.com/EBjerrum/scikit-mol
+Scikit_mol was a package originated from 2022 RDKit UGM hackathon. This [blog post](https://www.cheminformania.com/scikit-mol-easy-embedding-of-rdkit-into-scikit-learn/) elaborated further on its functions and uses in machine learning. For this post I've only used it for a very small portion, mainly to check for missing SMILES or errors in SMILES (kind of like double checking whether my preprocess function code worked as expected). It could be integrated with scikit-learn's pipeline method on multiple estimators. GitHub Repository link: https://github.com/EBjerrum/scikit-mol
 
 ```{python}
 # Quick simple way to check for missing SMILES
 print(f'Dataset contains {df_prep.standard_smiles.isna().sum()} unparsable mols')
 ```
 
-It appeared to have no unparsable (or missing) molecules.
+It appeared to have no unparsable (missing) molecules.
 
 ```{python}
-# Checking for invalid SMILES
+# Checking for invalid SMILES using scikit_mol
 smileschecker = CheckSmilesSanitazion()
 
 smileschecker.sanitize(list(df_prep.standard_smiles))
@@ -229,7 +229,7 @@ df_merge_new.head()
 ```{python}
 # Previously used 10 max phase 4 compounds were found in df_merge_new
 df_mp4 = df_merge_new.loc[df_merge_new["molecule_chembl_id"].isin(list_mp4)]
-print(df_mp4.shape)
+df_mp4
 ```
 
 ```{python}
@@ -296,6 +296,15 @@ Eventually df_full contained 10 active compounds and 5256 inactive compounds, as
 
 ```{python}
 df_full.value_counts("max_phase_lb")
+```
+
+```{python}
+# Cast max_phase_lb column into integer
+df_full["max_phase_lb"] = df_full["max_phase_lb"].astype(int)
+```
+
+```{python}
+df_full.head()
 ```
 
 ```{python}
@@ -412,7 +421,9 @@ new_threshold
 calc_metrics(y_train, train_probs, threshold=new_threshold)
 ```
 
-##### **ROC curves before and after shifting threshold**
+<br>
+
+##### **ROC curves**
 
 ```{python}
 import matplotlib.pyplot as plt
@@ -420,69 +431,36 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import RocCurveDisplay, roc_curve
 ```
 
-```{python}
-# Training set ROC curve
-RocCurveDisplay.from_predictions(y_train, train_probs, plot_chance_level = True)
-```
+###### **Before shifting threshold**
 
 ```{python}
 # Testing set ROC curve
 RocCurveDisplay.from_predictions(y_test, test_probs, plot_chance_level = True)
 ```
 
-Alternative ROC curve plotting method:
+<br>
 
-* Curve looks weird at the moment - work-in-progress
+###### **After shifting threshold**
 
 ```{python}
-# Sample code
-
-# fpr,tpr,_ = metrics.roc_curve(oob_tgt,oob_probs);
-# plt.figure()
-# lw = 2
-# plt.plot(fpr, tpr, lw=lw)
-# plt.plot([0, 1], [0, 1], color='k', lw=lw, linestyle='--')
-# plt.xlim([0.0, 1.0])
-# plt.ylim([0.0, 1.05])
-# plt.xlabel('False Positive Rate')
-# plt.ylabel('True Positive Rate')
-# plt.title("%s: AUC=%.3f"%(aid,auroc))
-# plt.show()
+# Training set ROC curve
+RocCurveDisplay.from_predictions(y_train, train_probs, plot_chance_level = True)
 ```
 
-```{python}
-# Set up true +ve rate (tpr), false +ve rate (fpr) & threshold
-fpr, tpr, thresh = metrics.roc_curve(y_train, train_probs, pos_label=1.0)
-```
+Alternative ROC curve plotting method that would reproduce a similar plot (longer way):
 
 ```{python}
-roc_df = pd.DataFrame({"recall": tpr, "specificity": 1 - fpr})
-```
-
-```{python}
-pt = roc_df.plot(x = "specificity", y = "recall", figsize=(3, 3), legend=False)
-
-# random guessing (threshold = 0.5)
-pt.plot([0, 1], [0, 1], color = "b", lw = 2, linestyle="--")
-
-pt.set_ylim([0.0, 1.05])
-pt.set_xlim([0.0, 1.0])
-
-pt.set_xlabel("specificity")
-pt.set_ylabel("recall")
-```
-
-```{python}
-#plt.figure()
-# plt.plot(fpr, tpr, lw = 2)
-
-# # random guessing (threshold = 0.5)
-# plt.plot([0, 1], [0, 1], color = "", lw = 2, linestyle="--")
-
-# plt.ylim([0.0, 1.05])
-# plt.xlim([0.0, 1.0])
-
-# plt.xlabel("specificity")
-# plt.ylabel("recall")
-# plt.show()
+# Look for true positive rate (tpr), false positive rate (fpr) & threshold
+fpr, tpr, thresh = metrics.roc_curve(y_train, train_probs)
+# Plotting
+plt.figure()
+# lw = linewidth
+plt.plot(fpr, tpr, lw = 2)
+# show random guessing line (threshold = 0.5)
+plt.plot([0, 1], [0, 1], color = "g", lw = 2, linestyle="--")
+plt.ylim([-0.05, 1.05])
+plt.xlim([-0.05, 1.0])
+plt.xlabel("specificity")
+plt.ylabel("recall")
+plt.show()
 ```
