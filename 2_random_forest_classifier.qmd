@@ -18,18 +18,18 @@ bibliography: references.bib
 
 ##### **Brief introduction**
 
-This post was really just an addition towards the last random forest (RF) post (machine learning (ML) series 2.2). It was mainly inspired by this paper (cite Esposito et al. on ghostml) from [rinikerlab](https://github.com/rinikerlab). It was also nice to complete the RF series by adding a RF classifier model since last post was only on a regressor. Also, knowing that imbalanced datasets were common in drug discovery projects, learning new strategies to deal with them was also extremely useful^[1], and while I was working on this post, I also came across a few other packages that I haven't used before, so I've included them all down below.
+This post was really just an addition towards the last random forest (RF) post (machine learning (ML) series 2.2). It was mainly inspired by this paper [@esposito2021] from [rinikerlab](https://github.com/rinikerlab). It was also nice to complete the RF series by adding a RF classifier model since last post was only on a regressor. Also, knowing that imbalanced datasets were common in drug discovery projects, learning new strategies to deal with them was also extremely useful[^1], and while I was working on this post, I also came across a few other packages that I haven't used before, so I've included them all down below.
 
-[1]: Thanks to Greg Landrum for providing this feedback on Mastodon for my last RF post, which led to this current post.
+[^1]: 1
 
 <br>
 
 ##### **Overview on packages/scripts used**
 
-* Data source using *chembl_downloader*
-* Own little script of random_forest.py (avoid repeating code)
-* SMILES checker from *scikit_mol*
-* Dealing with imbalanced datasets in RF classifiers by using *ghostml*
+-   Data source using *chembl_downloader*
+-   Own little script of random_forest.py (avoid repeating code)
+-   SMILES checker from *scikit_mol*
+-   Dealing with imbalanced datasets in RF classifiers by using *ghostml*
 
 <br>
 
@@ -59,9 +59,9 @@ chembl_downloader package was something I wanted to try a while back after knowi
 
 Reference notebooks that used chembl_downloader (more provided in its repository):
 
-- https://github.com/cthoyt/chembl-downloader/blob/main/notebooks/drug-indications.ipynb
+-   https://github.com/cthoyt/chembl-downloader/blob/main/notebooks/drug-indications.ipynb
 
-- https://github.com/PatWalters/practical_cheminformatics_tutorials/blob/1f7c61f83eec81081ef2605ac70440bf1940d914/misc/working_with_ChEMBL_drug_data.ipynb#L80
+-   https://github.com/PatWalters/practical_cheminformatics_tutorials/blob/1f7c61f83eec81081ef2605ac70440bf1940d914/misc/working_with_ChEMBL_drug_data.ipynb#L80
 
 What I did was shown below.
 
@@ -79,7 +79,7 @@ queries.markdown(queries.get_target_sql(target_id="CHEMBL220", target_type="SING
 
 The code below took several minutes to run - ?show time
 
-```{{python}}
+``` {{python}}
 # Following data download worked (4.41GB for SQL query below, might take several min)
 
 # Added MOLECULE_DICTIONARY.max_phase into sql to show max phases for compounds targeting AChE
@@ -149,7 +149,7 @@ df_prep.head(3)
 
 ###### **scikit_mol**
 
-scikit_mol was a package originated from 2022 RDKit UGM hackathon. This [blog post](https://www.cheminformania.com/scikit-mol-easy-embedding-of-rdkit-into-scikit-learn/) elaborated further on its functions and uses in machine learning. For this post I've only used it for a very small portion, mainly to check for missing SMILES or errors in SMILES (kind of like double checking whether my preprocess function code worked as expected). It could be integrated with scikit-learn's pipeline method on multiple estimators. GitHub Repository link: [https://github.com/EBjerrum/scikit-mol](https://github.com/EBjerrum/scikit-mol)
+scikit_mol was a package originated from 2022 RDKit UGM hackathon. This [blog post](https://www.cheminformania.com/scikit-mol-easy-embedding-of-rdkit-into-scikit-learn/) elaborated further on its functions and uses in machine learning. For this post I've only used it for a very small portion, mainly to check for missing SMILES or errors in SMILES (kind of like double checking whether my preprocess function code worked as expected). It could be integrated with scikit-learn's pipeline method on multiple estimators. GitHub Repository link: <https://github.com/EBjerrum/scikit-mol>
 
 ```{python}
 # Quick simple way to check for missing SMILES
@@ -248,7 +248,7 @@ The aim was to model and classify the max phase of ChEMBL small molecules - max 
     - *target*: max_phase
     - *features*: various RDKit 2D descriptors (RDKit2D)
 
-1. Re-labelled max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1) 
+1.  Re-labelled max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1)
 
 ```{python}
 # Re-label max phase NaN as 0
@@ -256,7 +256,7 @@ df_merge_new = df_merge_new.fillna(0)
 df_merge_new
 ```
 
-2. Splitting data into max phase null & max phase 4 (reason being needing to re-label max phase 4 column only as 1, and not disrupting max phase 0 compounds)
+2.  Splitting data into max phase null & max phase 4 (reason being needing to re-label max phase 4 column only as 1, and not disrupting max phase 0 compounds)
 
 ```{python}
 # Select all max phase null compounds
@@ -293,7 +293,7 @@ df_full = pd.concat([df_null_lb, df_mp4_lb])
 df_full
 ```
 
-3. Define X and y variables and train RF classifier model 
+3.  Define X and y variables and train RF classifier model
 
 Eventually df_full contained 10 active compounds and 5256 inactive compounds, as shown from the value counts.
 
@@ -332,7 +332,7 @@ y = y.to_numpy()
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=1)
 ```
 
-* Training RF classifier model
+-   Training RF classifier model
 
 Reference notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb
 
@@ -343,7 +343,7 @@ rfc = RandomForestClassifier(max_depth=3, random_state=1, max_features="sqrt", o
 rfc.fit(X_train, y_train)
 ```
 
-4. Obtain the prediction probabilities on the testing data and show confusion matrix with classification metrics
+4.  Obtain the prediction probabilities on the testing data and show confusion matrix with classification metrics
 
 ```{python}
 # Extract positive prediction probabilities for the testing set
@@ -370,7 +370,7 @@ def calc_metrics(y_test, test_probs, threshold = 0.5):
     return 
 ```
 
-Initially I made a mistake when doing the data split, which created a problem with y_test which only contained one label in it (1 only), needs binary labels (0 & 1) 
+Initially I made a mistake when doing the data split, which created a problem with y_test which only contained one label in it (1 only), needs binary labels (0 & 1)
 
 It was needed for roc_auc_score (measures true +ve & false +ve rates).
 
@@ -381,24 +381,24 @@ calc_metrics(y_test, test_probs, threshold = 0.5)
 # This was an extreme case - as only 10 actives vs. 5256 inactives
 ```
 
-5. two approaches from GHOST paper (main idea was optimising and shifting decision threshold):
+5.  two approaches from GHOST paper (main idea was optimising and shifting decision threshold):
 
-    - approach 1 (out-of-bag method, aimed for RF classifiers) based on RDKit blog post (ref. 41) - http://rdkit.blogspot.com/2018/11/working-with-unbalanced-data-part-i.html ([viewable notebook version](https://nbviewer.org/github/greglandrum/rdkit_blog/blob/master/notebooks/Working%20with%20unbalanced%20data%20part%201.ipynb) via nbviewer)
+    -   approach 1 (out-of-bag method, aimed for RF classifiers) based on RDKit blog post (ref. 41) - http://rdkit.blogspot.com/2018/11/working-with-unbalanced-data-part-i.html ([viewable notebook version](https://nbviewer.org/github/greglandrum/rdkit_blog/blob/master/notebooks/Working%20with%20unbalanced%20data%20part%201.ipynb) via nbviewer)
 
-    - approach 2 led to Generalised threshold shifting (GHOST) procedure (could be used for any classification methods) - ghostml package
+    -   approach 2 led to Generalised threshold shifting (GHOST) procedure (could be used for any classification methods) - ghostml package
 
 I only used approach 2 here as both approaches were shown to be performing similarly in the paper, and also approach 1 was already described in a RDKit blog post.
 
-* extract the prediction probabilities from the RF classifier trained model
+-   extract the prediction probabilities from the RF classifier trained model
 
 ```{python}
 # Get the positive prediction probabilities of the training set
 train_probs = rfc.predict_proba(X_train)[:, 1]
 ```
 
-6. Shift decision threshold using ghostml in a postprocessing way (note: last post used re-sampling method in a preprocessing way)
+6.  Shift decision threshold using ghostml in a postprocessing way (note: last post used re-sampling method in a preprocessing way)
 
-* optimise the decision threshold using ghostml via testing various thresholds (in spaces of 0.05 with range of 0.05 to 0.5) - to search for the most optimal threshold with most maximised Cohen's kappa
+-   optimise the decision threshold using ghostml via testing various thresholds (in spaces of 0.05 with range of 0.05 to 0.5) - to search for the most optimal threshold with most maximised Cohen's kappa
 
 ```{python}
 # Setting up different decision thresholds in space of 0.05
@@ -416,7 +416,7 @@ new_threshold = ghostml.optimize_threshold_from_predictions(y_train, train_probs
 new_threshold
 ```
 
-* calculate confusion matrix and classification metrics based on the optimised decision threshold
+-   calculate confusion matrix and classification metrics based on the optimised decision threshold
 
 ```{python}
 # Using calc_metrics function again on the newly-found/shifted decision threshold
@@ -430,7 +430,7 @@ calc_metrics(y_train, train_probs, threshold=new_threshold)
 
 Time for some plots - I've shown two different ways to plot ROC curve below.
 
-1. Using *scikit-learn*
+1.  Using *scikit-learn*
 
 ###### **Testing set ROC curve**
 
@@ -450,7 +450,7 @@ This probably looked too good to be true or a textbook-standard ROC curve with A
 RocCurveDisplay.from_predictions(y_train, train_probs, plot_chance_level = True)
 ```
 
-2. Alternative method using matplotlib which reproduced a similar training set ROC plot:
+2.  Alternative method using matplotlib which reproduced a similar training set ROC plot:
 
 ```{python}
 # Look for true positive rate (tpr), false positive rate (fpr) & threshold
