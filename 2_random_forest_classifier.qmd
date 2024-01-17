@@ -2,13 +2,14 @@
 title: "Random forest classifier"
 subtitle: "Series 2.2.1 - more on imbalanced dataset"
 author: Jennifer HY Lin
-date: '2024-1-6'
-draft: true
+date: '2024-1-17'
+draft: false
 categories: 
     - Machine learning projects
     - Tree models
     - Pandas
     - Scikit-learn
+    - RDKit
     - ChEMBL database
     - Python
 jupyter: python3
@@ -18,18 +19,19 @@ bibliography: references.bib
 
 ##### **Brief introduction**
 
-This post was really just an addition towards the last random forest (RF) post (machine learning (ML) series 2.2). It was mainly inspired by this paper [@esposito2021] from [rinikerlab](https://github.com/rinikerlab). It was also nice to complete the RF series by adding a RF classifier model since last post was only on a regressor. Also, knowing that imbalanced datasets were common in drug discovery projects, learning new strategies to deal with them was also extremely useful[^1], and while I was working on this post, I also came across a few other packages that I haven't used before, so I've included them all down below.
+This post was really just an addition towards the last random forest (RF) post. It was mainly inspired by this paper [@esposito2021] from [rinikerlab](https://github.com/rinikerlab)[^1]. It was nice to complete the RF series by adding a RF classifier since last post was only on a regressor. Another thing was that imbalanced datasets were common in drug discovery projects, learning different strategies to deal with them was also very useful. While working on this post, I also came across a few other packages that I haven't used before so I've included them all down below.
 
-[^1]: 1
+[^1]: h/t: Greg Landrum for his comment on Mastodon for the last RF post (which led to this follow-up post)
 
 <br>
 
-##### **Overview on packages/scripts used**
+##### **Overview of post**
 
--   Data source using *chembl_downloader*
--   Own little script of random_forest.py (avoid repeating code)
--   SMILES checker from *scikit_mol*
--   Dealing with imbalanced datasets in RF classifiers by using *ghostml*
+-   Data sourcing via *chembl_downloader*
+-   Minor data preprocessing using own little script and also SMILES checker from *scikit_mol*
+- *scikit-learn*'s RandomForestClassifier()
+-   Dealing with imbalanced dataset in RF classifiers by using *ghostml*
+-   A small section on plotting receiver operating characteristic (ROC) curves
 
 <br>
 
@@ -46,6 +48,7 @@ import datamol as dm
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import ConfusionMatrixDisplay
 from sklearn.metrics import RocCurveDisplay, roc_curve
 from scikit_mol.utilities import CheckSmilesSanitazion
 import ghostml
@@ -55,13 +58,7 @@ import ghostml
 
 ##### **Data retrieval using chembl_downloader**
 
-chembl_downloader package was something I wanted to try a while back after knowing that it would thoroughly document the ChEMBL data source (I've tried manual download and chembl_webresource_client, and they were probably not the best strategies for data reproducibility). Its idea was to generate a data source that could be fully reproducible. It involved some SQL at the beginning to specify the exact type of data needed, so some SQL knowledge was required. The rest were pretty straightforward. Other uses for this package were elaborated much more nicely in its GitHub repository at https://github.com/cthoyt/chembl-downloader. Overall, I think it was very useful in a Jupyter notebook or equivalent environments to document the data used.
-
-Reference notebooks that used chembl_downloader (more provided in its repository):
-
--   https://github.com/cthoyt/chembl-downloader/blob/main/notebooks/drug-indications.ipynb
-
--   https://github.com/PatWalters/practical_cheminformatics_tutorials/blob/1f7c61f83eec81081ef2605ac70440bf1940d914/misc/working_with_ChEMBL_drug_data.ipynb#L80
+chembl_downloader was something I wanted to try a while back. I've tried manual download and chembl_webresource_client previously, and they were probably not the best strategies for data reproducibility. The idea of chembl_downloader was to generate a reproducible ChEMBL data source. It involved some SQL at the beginning to specify the exact type of data needed, so some SQL knowledge were required. Other uses for this package were elaborated much more clearly in its GitHub repository at [https://github.com/cthoyt/chembl-downloader](https://github.com/cthoyt/chembl-downloader). One of the reference notebooks that I've used could be reached [here](https://github.com/cthoyt/chembl-downloader/blob/main/notebooks/drug-indications.ipynb) (more available in its repository).
 
 What I did was shown below.
 
@@ -72,17 +69,18 @@ print(f"The latest ChEMBL version is: {latest_version}")
 ```
 
 ```{python}
-# Query chembl_downloader to show SQL required to extract ChEMBL data for a specific protein target
-# e.g. target_chembl_id for AChE: CHEMBL220
+# Query chembl_downloader to show SQL required 
+# to extract ChEMBL data for a specific protein target
+# e.g. target_chembl_id for acetylcholinesterase (AChE): CHEMBL220
 queries.markdown(queries.get_target_sql(target_id="CHEMBL220", target_type="SINGLE PROTEIN"))
 ```
 
-The code below took several minutes to run - ?show time
+The code below took several minutes to run.
 
 ``` {{python}}
-# Following data download worked (4.41GB for SQL query below, might take several min)
-
-# Added MOLECULE_DICTIONARY.max_phase into sql to show max phases for compounds targeting AChE
+# Following data were 4.41GB in total from the SQL query
+# Added an extra line - MOLECULE_DICTIONARY.max_phase 
+# into sql to show max phases of compounds targeting AChE
 
 sql = """
 SELECT
@@ -109,8 +107,8 @@ df = chembl_downloader.query(sql)
 ```
 
 ```{python}
-# Save df as .csv file
-df.to_csv("chembl_d_ache", sep=",", index=False)
+# Save df as .csv file (uncomment last line to run)
+#df.to_csv("chembl_d_ache", sep=",", index=False)
 ```
 
 ```{python}
@@ -124,13 +122,13 @@ df_ache.head()
 
 ##### **Some data cleaning**
 
-Minor cleaning and preprocessing were done for this post only, as the focus was more on dealing with imbalanced datasets in RF classifier.
+Minor cleaning and preprocessing were done for this post only, as the focus was more on dealing with imbalanced dataset in RF classifier. Since I used a different way to retrieve ChEMBL data this time, the dataset used here might be slightly different from the one used in previous post.
 
 <br>
 
 ###### **mol_prep.py**
 
-I've written or more like compiled my own little pieces of code into a Python script. The idea was to remove most function code in the post to avoid repeating them as they've been used frequently in the last few posts. The script would be saved into my project repository, and it would still be a "work-in-progress" script as hopefully I'll work on it further in the future.
+I've more or less accumulated small pieces of code over time, and I've decided to compile them into a Python script. The idea was to remove most function code in the post to avoid repeating them all the time since they've been used frequently in the last few posts. The script would be saved into the [RF repository](https://github.com/jhylin/ML2-2_random_forest), and would still be considered as a "work-in-progress" script (needs more work in the future).
 
 ```{python}
 ## Trial own mol_prep.py script
@@ -149,29 +147,26 @@ df_prep.head(3)
 
 ###### **scikit_mol**
 
-scikit_mol was a package originated from 2022 RDKit UGM hackathon. This [blog post](https://www.cheminformania.com/scikit-mol-easy-embedding-of-rdkit-into-scikit-learn/) elaborated further on its functions and uses in machine learning. For this post I've only used it for a very small portion, mainly to check for missing SMILES or errors in SMILES (kind of like double checking whether my preprocess function code worked as expected). It could be integrated with scikit-learn's pipeline method on multiple estimators. GitHub Repository link: <https://github.com/EBjerrum/scikit-mol>
+scikit_mol was a package originated from RDKit UGM hackathon in 2022. This [blog post](https://www.cheminformania.com/scikit-mol-easy-embedding-of-rdkit-into-scikit-learn/) elaborated further on its functions and uses in machine learning. For this post I've only used it for a very small portion, mainly to check for missing SMILES or errors in SMILES (kind of like double checking whether the preprocess function code worked as expected). It could be integrated with *scikit-learn*'s pipeline method for multiple estimators. Its GitHub Repository link: [https://github.com/EBjerrum/scikit-mol](https://github.com/EBjerrum/scikit-mol) - I've referred to this [reference notebook](https://github.com/EBjerrum/scikit-mol/blob/main/notebooks/05_smiles_sanitaztion.ipynb) while working on this post.
 
 ```{python}
 # Quick simple way to check for missing SMILES
 print(f'Dataset contains {df_prep.standard_smiles.isna().sum()} unparsable mols')
 ```
 
-It appeared to have no unparsable (missing) molecules.
-
 ```{python}
 # Checking for invalid SMILES using scikit_mol
 smileschecker = CheckSmilesSanitazion()
-
 smileschecker.sanitize(list(df_prep.standard_smiles))
 
 # Showing SMILES errors
 smileschecker.errors
 ```
 
-It also confirmed that there were no errors in SMILES.
+It showed no errors in SMILES (errors should be listed in the code cell output).
 
 ```{python}
-## Generate RDKit2D descriptors/fingerprints
+## Generate RDKit 2D descriptors/fingerprints
 # Running rdkit_2d_descriptors function
 df_2d = rdkit_2d_descriptors(df_prep)
 df_2d.head(3)
@@ -185,38 +180,33 @@ df_merge = pd.merge(
     left_index=True,
     right_index=True
 )
-```
-
-```{python}
 print(df_merge.shape)
 df_merge.head(3)
 ```
 
-A different spreads of max phases were shown this time as the SQL query mainly used IC50, whereas last post was strictly limited to Ki via ChEMBL web resource client. Other likely reason was that in the decision tree series, I attempted data preprocessing at a larger scale (which eliminated some data). So, it appeared that there were more max phase 4 compounds here than last time (Note: null compounds were not shown in the value counts here as it was labelled as "NaN", but it should be the largest portion of max phase in the data).
+A different spreads of max phases were shown this time in the dataframe, as the SQL query mainly used IC50, whereas last post was strictly limited to Ki via ChEMBL web resource client. Other likely reason was that in the decision tree series, I've attempted data preprocessing at a larger scale so some data were eliminated. It appeared that there were more max phase 4 compounds here than last time (note: null compounds were not shown in the value counts as it was labelled as "NaN", it should be the largest max phase portion in the data).
 
 ```{python}
 # Find out counts of each max phase
 df_merge.value_counts("max_phase")
 ```
 
-I then tried searching for the chembl_id of the 10 max phase 4 compounds used in the last post in df_merge.
+I then tried searching for the chembl_id of the 10 max phase 4 compounds used in the last post in the dataframe (df_merge).
 
 ```{python}
 # Previously used 10 max phase 4 compounds
-# donepezil = CHEMBL502 
-# galantamine = CHEMBL659
+# donepezil = CHEMBL502 & galantamine = CHEMBL659
 list_mp4 = ["CHEMBL95", "CHEMBL1128", "CHEMBL640", "CHEMBL502", "CHEMBL481", "CHEMBL360055", "CHEMBL1025", "CHEMBL659", "CHEMBL1200970", "CHEMBL1677"]
 
 # Search for compounds in list_mp4 within df_merge's "molecule_chembl_id" column
 # using Series.isin
 df_prev = df_merge.loc[df_merge["molecule_chembl_id"].isin(list_mp4)]
-df_prev
+df_prev.head()
 ```
 
 There were many duplicates of compounds.
 
 ```{python}
-# Some compounds with duplicates
 print(df_prev.shape)
 df_prev.value_counts("molecule_chembl_id")
 ```
@@ -229,7 +219,7 @@ df_merge_new.head()
 ```
 
 ```{python}
-# Previously used 10 max phase 4 compounds were found in df_merge_new
+# Making sure previously used 10 max phase 4 compounds could be found in df_merge_new
 df_mp4 = df_merge_new.loc[df_merge_new["molecule_chembl_id"].isin(list_mp4)]
 df_mp4
 ```
@@ -243,20 +233,19 @@ df_merge_new.value_counts("max_phase")
 
 ##### **Model building**
 
-The aim was to model and classify the max phase of ChEMBL small molecules - max phase 4 or not:
+The aim of this post was to model and classify the max phases of ChEMBL small molecules, i.e. whether the compounds in the testing set (consisted of max phase 0 or null compounds) might be eventually classified as max phase 4 or not. This was one of the approaches to answer the question in mind, and not the ultimate way to solve the problem (just thought to mention). The target was "max_phase" and features to be used were the various RDKit 2D descriptors (RDKit2D).
 
-    - *target*: max_phase
-    - *features*: various RDKit 2D descriptors (RDKit2D)
+The steps I've taken to build the model were shown below:
 
 1.  Re-labelled max phases as binary labels (e.g. max phase null as 0, max phase 4 as 1)
 
 ```{python}
 # Re-label max phase NaN as 0
 df_merge_new = df_merge_new.fillna(0)
-df_merge_new
+df_merge_new.head()
 ```
 
-2.  Splitting data into max phase null & max phase 4 (reason being needing to re-label max phase 4 column only as 1, and not disrupting max phase 0 compounds)
+2.  Splitted data into max phase null & max phase 4 (needing to re-label max phase 4 column only as 1, and not disrupting the labels of max phase 0 compounds)
 
 ```{python}
 # Select all max phase null compounds
@@ -266,26 +255,23 @@ df_null.head()
 ```
 
 ```{python}
-# Using pd.DataFrame.assign to add a new column to re-label max_phase 4 into "1"
+# Using pd.DataFrame.assign to add a new column to re-label max_phase 4 as "1"
 df_mp4_lb = df_mp4.assign(max_phase_lb = df_mp4["max_phase"] / 4)
 
 # Using pd.DataFrame.pop() & insert() to shift added column to first column position
 first_col = df_mp4_lb.pop("max_phase_lb")
 df_mp4_lb.insert(0, "max_phase_lb", first_col)
-
-df_mp4_lb
+df_mp4_lb.head()
 ```
 
 ```{python}
-# Also create a new column max_phase_lb column for df_null to merge 2 dfs together
-
+# Also create a new column max_phase_lb column for df_null 
+# in order to merge 2 dfs later
 df_null_lb = df_null.assign(max_phase_lb = df_null["max_phase"])
 first_col_null = df_null_lb.pop("max_phase_lb")
 df_null_lb.insert(0, "max_phase_lb", first_col_null)
 df_null_lb.head()
 ```
-
-The two dataframes should share same column names which could be combined together.
 
 ```{python}
 # Concatenate df_mp4_lb & df_null_lb
@@ -293,21 +279,12 @@ df_full = pd.concat([df_null_lb, df_mp4_lb])
 df_full
 ```
 
-3.  Define X and y variables and train RF classifier model
+3.  Defined X and y variables and trained RF classifier model
 
-Eventually df_full contained 10 active compounds and 5256 inactive compounds, as shown from the value counts.
+Eventually df_full contained 10 active compounds and 5256 inactive compounds (from the value counts).
 
 ```{python}
 df_full.value_counts("max_phase_lb")
-```
-
-```{python}
-# Cast max_phase_lb column into integer
-df_full["max_phase_lb"] = df_full["max_phase_lb"].astype(int)
-```
-
-```{python}
-df_full.head()
 ```
 
 ```{python}
@@ -317,7 +294,7 @@ y = df_full.iloc[:, 0]
 ```
 
 ```{python}
-# Checking the right data have been selected
+# Checking right data were selected e.g. y as target
 y
 ```
 
@@ -332,77 +309,87 @@ y = y.to_numpy()
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=1)
 ```
 
--   Training RF classifier model
-
-Reference notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb
+After data splitting, a RF classifier was trained with reference to this [notebook](https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb).
 
 ```{python}
-# Using RandomForestClassifier() to train model
-# max_features = "sqrt" by default, I decided to show it explicitly in the code to make sure the right one was used
+# max_features = "sqrt" by default
 rfc = RandomForestClassifier(max_depth=3, random_state=1, max_features="sqrt", oob_score=True)
 rfc.fit(X_train, y_train)
 ```
 
-4.  Obtain the prediction probabilities on the testing data and show confusion matrix with classification metrics
+4.  Extracted positive prediction probabilities for the testing set and showed confusion matrix with classification metrics
 
 ```{python}
-# Extract positive prediction probabilities for the testing set
 test_probs = rfc.predict_proba(X_test)[:, 1]
 ```
 
-A useful web link on area under the receiver operating characteristic curve - https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc
+Some reference links and explanations for area under the ROC curve and Cohen's Kappa.
+
+**Area under the ROC curve**: [reference](https://scikit-learn.org/stable/modules/model_evaluation.html#receiver-operating-characteristic-roc) - the area under a curve plot between *sensitivity* or *recall* (percent of all 1s classified correctly by a classifier or true positive rate) and *specificity* (percent of all 0s classified correctly by a classifier, or equivalent to 1 - false positive rate or true negative rate) [@bruce2020]. It is useful for evaluating the performance of a classification model via comparing the true positive rate and false positive rate which are influenced by shifting the decision threshold. Area under the ROC is usually represented as a number ranging from 0 to 1 (1 being a perfect classifier, 0.5 or below meaning a poor, ineffective classifier)
+
+**Cohen's Kappa score**: [reference](https://scikit-learn.org/stable/modules/model_evaluation.html#cohen-s-kappa) - a score that is used to measure the agreement of labelling between two annotators (usually between -1 and 1, the higher the score the better the agreement)
+
+Rather than re-inventing the wheel, the following function code for calculating metrics of the RF model were adapted from [this notebook](https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb), from [GHOST repository](https://github.com/rinikerlab/GHOST). I have only added some comments for clarities, and also added a zero_division parameter for the classification_report to mute the warning message when the results ended up being 0 due to divisions by zero.
 
 ```{python}
-# Rather than re-inventing the wheel, the following function code for calculating metrics of the RF model was adapted from Landrum et al., from this notebook: https://github.com/rinikerlab/GHOST/blob/main/notebooks/example_GHOST.ipynb
-
 def calc_metrics(y_test, test_probs, threshold = 0.5):
-    # Scores to differentiate between stated decision threshold (default = 0.5)
+    # Target label assigned according to stated decision threshold (default = 0.5)
+    # e.g. second annotator (expected label)
     scores = [1 if x>=threshold else 0 for x in test_probs]
-    # Calculate area under the receiver operating characteristic curve
+    # Calculate area under the ROC curve based on prediction score
     auc = metrics.roc_auc_score(y_test, test_probs)
     # Calculate Cohen's Kappa score
+    # e.g. y_test as first annotator (predicted label)
     kappa = metrics.cohen_kappa_score(y_test, scores)
     # Formulate the confusion matrix
     confusion = metrics.confusion_matrix(y_test, scores, labels = list(set(y_test)))
     print('thresh: %.2f, kappa: %.3f, AUC test-set: %.3f'%(threshold, kappa, auc))
     print(confusion)
-    print(metrics.classification_report(y_test,scores))
+    print(metrics.classification_report(y_test, scores, zero_division=0.0))
     return 
 ```
 
-Initially I made a mistake when doing the data split, which created a problem with y_test which only contained one label in it (1 only), needs binary labels (0 & 1)
+Note: roc_auc_score measures true positive and false positive rates, requiring binary labels (e.g. 0s and 1s) in the data
 
-It was needed for roc_auc_score (measures true +ve & false +ve rates).
+Then showed confusion matrix along with area under the ROC curve and Cohen's Kappa.
 
 ```{python}
-# Show confusion matrix along with AUC and Cohen's Kappa
 calc_metrics(y_test, test_probs, threshold = 0.5)
-
-# This was an extreme case - as only 10 actives vs. 5256 inactives
 ```
 
-5.  two approaches from GHOST paper (main idea was optimising and shifting decision threshold):
+To help with interpreting the confusion matrix, *scikit-learn* actually had a handy plotting code to visualise the matrix. 
 
-    -   approach 1 (out-of-bag method, aimed for RF classifiers) based on RDKit blog post (ref. 41) - http://rdkit.blogspot.com/2018/11/working-with-unbalanced-data-part-i.html ([viewable notebook version](https://nbviewer.org/github/greglandrum/rdkit_blog/blob/master/notebooks/Working%20with%20unbalanced%20data%20part%201.ipynb) via nbviewer)
+```{python}
+ConfusionMatrixDisplay.from_estimator(rfc, X_test, y_test)
+plt.show()
+```
 
-    -   approach 2 led to Generalised threshold shifting (GHOST) procedure (could be used for any classification methods) - ghostml package
+It was very obvious that not all of the compounds were classified in the testing set. There were only 1052 compounds classified as true negative, and none in the testing set were labelled as true positive. The likely reason was due to the very imbalanced ratio of actives (only 10 max phase 4 which were labelled as "1" compounds) and inactives (5256 max phase 0 compounds). Besides the imbalanced dataset, the decision threshold was also normally set at 0.5, meaning the classifier was likely going to lose the chance to classify the true positive compounds due to the very skewed ratio of actives to inactives.
 
-I only used approach 2 here as both approaches were shown to be performing similarly in the paper, and also approach 1 was already described in a RDKit blog post.
+5.  Two approaches were used in the GHOST (generalized threshold shifting) paper:
 
--   extract the prediction probabilities from the RF classifier trained model
+    -   Approach 1 (out-of-bag method, more computer efficient, aimed for RF classifiers) based on [RDKit blog post](http://rdkit.blogspot.com/2018/11/working-with-unbalanced-data-part-i.html) or its [viewable notebook version](https://nbviewer.org/github/greglandrum/rdkit_blog/blob/master/notebooks/Working%20with%20unbalanced%20data%20part%201.ipynb) via nbviewer
+
+    -   Approach 2 led to [GHOST](https://github.com/rinikerlab/GHOST) procedure with a goal to optimise and shift the decision threshold in any classification methods to catch the minor portion of actives (rather than the major portion of inactives) 
+
+    - note: both approaches were shown to be performing similarly in the paper
+
+I only used approach 2 here since the RDKit blog post had already explained approach 1 in depth. 
+
+The next step involved extracting prediction probabilities from the RF classifier trained model.
 
 ```{python}
 # Get the positive prediction probabilities of the training set
 train_probs = rfc.predict_proba(X_train)[:, 1]
 ```
 
-6.  Shift decision threshold using ghostml in a postprocessing way (note: last post used re-sampling method in a preprocessing way)
+6.  Used GHOST strategy in a postprocessing way (note: last post used data re-sampling method in a preprocessing way)
 
--   optimise the decision threshold using ghostml via testing various thresholds (in spaces of 0.05 with range of 0.05 to 0.5) - to search for the most optimal threshold with most maximised Cohen's kappa
+The decision threshold were optimised by using *ghostml* code via testing various different thresholds, e.g. in spaces of 0.05 that ranged from 0.05 to 0.5. The most optimal threshold would have the most maximised Cohen's kappa.
 
 ```{python}
-# Setting up different decision thresholds in space of 0.05
-thresholds = np.round(np.arange(0.05,0.55,0.05),2)
+# Setting up different decision thresholds
+thresholds = np.round(np.arange(0.05,0.55,0.05), 2)
 thresholds
 ```
 
@@ -411,49 +398,40 @@ thresholds
 new_threshold = ghostml.optimize_threshold_from_predictions(y_train, train_probs, thresholds, ThOpt_metrics = 'ROC') 
 ```
 
-```{python}
-# Show the optimal decision threshold
-new_threshold
-```
-
--   calculate confusion matrix and classification metrics based on the optimised decision threshold
+Using the calc_metrics function again on the newly-found or shifted decision threshold.
 
 ```{python}
-# Using calc_metrics function again on the newly-found/shifted decision threshold
-# It showed an improved classification outcome through the confusion matrix
-calc_metrics(y_train, train_probs, threshold=new_threshold)
+calc_metrics(y_train, train_probs, threshold = new_threshold)
 ```
+
+Here, after shifting the decision threshold with the most optimal Cohen's Kappa score, we could see an improved number of compounds labelled within the true negative class (increasing from 1052 to 4204), and more importantly, we could see the true positive class improved from 0 to 7 as well.
 
 <br>
 
 ##### **Plotting ROC curves**
 
-Time for some plots - I've shown two different ways to plot ROC curve below.
+Time for some plots - I've shown two different ways to plot ROC curves below.
 
 1.  Using *scikit-learn*
 
-###### **Testing set ROC curve**
+Testing set ROC curve - obviously, this was not a good classifier with a poor AUC.
 
 ```{python}
-# Testing set ROC curve
 RocCurveDisplay.from_predictions(y_test, test_probs, plot_chance_level = True)
 ```
 
 <br>
 
-###### **Training set ROC curve**
-
-This probably looked too good to be true or a textbook-standard ROC curve with AUC at 1.0.
+Training set ROC curve - this probably looked too good to be true or a textbook-standard ROC curve with AUC at 1.0.
 
 ```{python}
-# Training set ROC curve
 RocCurveDisplay.from_predictions(y_train, train_probs, plot_chance_level = True)
 ```
 
 2.  Alternative method using matplotlib which reproduced a similar training set ROC plot:
 
 ```{python}
-# Look for true positive rate (tpr), false positive rate (fpr) & threshold
+# Looking for true positive rate (tpr), false positive rate (fpr) & threshold
 fpr, tpr, thresh = metrics.roc_curve(y_train, train_probs)
 # Plotting
 plt.figure()
@@ -467,3 +445,17 @@ plt.xlabel("specificity")
 plt.ylabel("recall")
 plt.show()
 ```
+
+<br>
+
+##### **Downsides and thoughts**
+
+I wanted to mention that the testing set used here was most likely not the best ones to be used. There could be many overlaps or similarities between the training and testing sets, since they all came from ChEMBL database. For demonstration and learning purposes, I ended up using similar dataset as last time. Hopefully, I can try other open-source or public drug discovery datasets in the near future. 
+
+The other thing to mention was that I should try different molecular fingerprints or descriptors as well, rather than only using RDKit2D, which might lead to different results. I should also probably slowly move onto using multiple datasets or targets in a project, which would likely make things more interesting. On the other hand, I also wanted to avoid this in order to make the topic of interest as clear and simple as possible for me or anyone who's trying to learn. 
+
+<br>
+
+##### **Acknowledgements**
+
+I'd like to thank Riniker lab again for the GHOST paper, along with all the authors, contributors or developers for all of the software packages mentioned in this post, and also, huge thanks should also go to the authors of the reference notebooks mentioned in the post as well.

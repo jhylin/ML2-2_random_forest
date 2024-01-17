@@ -3,7 +3,8 @@
 py3.10venv
 plot_permutation_importance.ipynb
 .DS_Store
-Feature_imp_old_code.py
 example_GHOST.ipynb
 Tutorial_Threshold_Optimization_RF.ipynb
 .Rproj.user
+2_random_forest_classifier_files
+2_random_forest_classifier.html
