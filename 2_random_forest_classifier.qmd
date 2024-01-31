@@ -17,7 +17,9 @@ format: html
 bibliography: references.bib
 ---
 
-*The section on "Data retrieval using chembl_downloader" has been updated on 26th Jan 2024 - many thanks for the comment from Charles Tapley Hoyt (cthoyt)*.
+*The section on "Data retrieval using chembl_downloader" has been updated and finalised on 31st January 2024 - many thanks for the comment from Charles Tapley Hoyt (cthoyt)*.
+
+<br>
 
 ##### **Brief introduction**
 
@@ -70,34 +72,21 @@ latest_version = latest()
 print(f"The latest ChEMBL version is: {latest_version}")
 ```
 
-The code below took several minutes to run.
+The following section was updated as suggested by cthoyt (please see comment below). I ended up putting through my first ever pull request in an open-source and cheminformatics-related package. A new option to add max_phase was added into the get_target_sql function in chembl_downloader, and it was kept as a togglable option that could be turned on via boolean flag. Many thanks for the patience from cthoyt for guiding me through it. The overall code was now changed as shown below.
 
-``` {python}
-# Following data were 4.41GB in total from the SQL query
+```{python}
+# Generate SQL for a query on acetylcholinesterase (AChE): CHEMBL220
+sql = queries.get_target_sql(target_id="CHEMBL220", target_type="SINGLE PROTEIN", max_phase=True)
 
-sql = """
-SELECT
-    ASSAYS.chembl_id              AS assay_chembl_id,
-    TARGET_DICTIONARY.target_type,
-    TARGET_DICTIONARY.tax_id,
-    TARGET_DICTIONARY.chembl_id,
-    COMPOUND_STRUCTURES.canonical_smiles,
-    MOLECULE_DICTIONARY.chembl_id AS molecule_chembl_id,
-    MOLECULE_DICTIONARY.max_phase,
-    ACTIVITIES.standard_type,
-    ACTIVITIES.pchembl_value
-FROM TARGET_DICTIONARY
-     JOIN ASSAYS ON TARGET_DICTIONARY.tid == ASSAYS.tid
-     JOIN ACTIVITIES ON ASSAYS.assay_id == ACTIVITIES.assay_id
-     JOIN MOLECULE_DICTIONARY ON MOLECULE_DICTIONARY.molregno == ACTIVITIES.molregno
-     JOIN COMPOUND_STRUCTURES ON MOLECULE_DICTIONARY.molregno == COMPOUND_STRUCTURES.molregno
-WHERE TARGET_DICTIONARY.chembl_id = 'CHEMBL220'
-    AND ACTIVITIES.pchembl_value IS NOT NULL
-    AND TARGET_DICTIONARY.target_type = 'SINGLE PROTEIN'
-"""
+# Pretty-print the SQL in Jupyter
+queries.markdown(sql)
 ```
 
-I've updated how I retrieved and saved the ChEMBL data - code as suggested and provided by cthoyt. This would be a better and more reproducible way for anyone who might be interested in re-running this notebook.
+```{python}
+# The SQL still works as shown above, please ignore the other non-SQL texts (unfortunately I couldn't get rid of them in the Quarto markdown file format).
+```
+
+I've also updated how I retrieved and saved the ChEMBL data - code as suggested and provided by cthoyt. This would be a better and more reproducible way for anyone who might be interested in re-running this notebook. 
 
 ```{python}
 from pathlib import Path
@@ -118,6 +107,8 @@ else:
     df_ache = chembl_downloader.query(sql)
     df_ache.to_csv(path, sep=",", index=False)
 ```
+
+The rest of the code outputs in the rest of the post stayed the same as before. The only thing changed and updated was the part on retrieving ChEMBL data via chembl_downloader.
 
 <br>
 
