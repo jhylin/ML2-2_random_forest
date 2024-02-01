@@ -19,6 +19,8 @@ bibliography: references.bib
 
 *The section on "Data retrieval using chembl_downloader" has been updated and finalised on 31st January 2024 - many thanks for the comment from Charles Tapley Hoyt (cthoyt)*.
 
+*Jupyter notebook version can be accessed [here](https://github.com/jhylin/ML2-2_random_forest/blob/main/2_random_forest_classifier.ipynb)*.
+
 <br>
 
 ##### **Brief introduction**
@@ -72,7 +74,7 @@ latest_version = latest()
 print(f"The latest ChEMBL version is: {latest_version}")
 ```
 
-The following section was updated as suggested by cthoyt (please see comment below). I ended up putting through my first ever pull request in an open-source and cheminformatics-related package. A new option to add max_phase was added into the get_target_sql function in chembl_downloader, and it was kept as a togglable option that could be turned on via boolean flag. Many thanks for the patience from cthoyt for guiding me through it. The overall code was now changed as shown below.
+The following section was updated as suggested by cthoyt (via his comment for post below). I ended up putting through my first ever pull request in an open-source and cheminformatics-related repository. A new option to choose max_phase was added into the get_target_sql function in chembl_downloader by keeping it as a togglable option via boolean flag. Many thanks for the patience from cthoyt for guiding me through it. The overall code was now changed as shown below.
 
 ```{python}
 # Generate SQL for a query on acetylcholinesterase (AChE): CHEMBL220
@@ -83,10 +85,14 @@ queries.markdown(sql)
 ```
 
 ```{python}
-# The SQL still works as shown above, please ignore the other non-SQL texts (unfortunately I couldn't get rid of them in the Quarto markdown file format).
+# The SQL still works as shown above, 
+# please ignore the non-SQL texts
+# - bit of a formatting issue 
+# when pretty-printing the sql, 
+# but shouldn't affect the code
 ```
 
-I've also updated how I retrieved and saved the ChEMBL data - code as suggested and provided by cthoyt. This would be a better and more reproducible way for anyone who might be interested in re-running this notebook. 
+I've also updated how I retrieved and saved the ChEMBL data with the following code suggested and provided by cthoyt. This would be a better and more reproducible way for anyone who might be interested in re-running this notebook. 
 
 ```{python}
 from pathlib import Path
@@ -108,7 +114,7 @@ else:
     df_ache.to_csv(path, sep=",", index=False)
 ```
 
-The rest of the code outputs in the rest of the post stayed the same as before. The only thing changed and updated was the part on retrieving ChEMBL data via chembl_downloader.
+The rest of the code outputs in the post stayed the same as before. The only thing changed and updated was the part on retrieving ChEMBL data via chembl_downloader.
 
 <br>
 
