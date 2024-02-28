@@ -538,7 +538,7 @@ It generated a different feature importances ranking (if looking at top 6 featur
 
 ###### **SHAP approach**
 
-SHAP values [@lundberg2020local2global, @shapley1953] were used here to provide another way to figure out feature importances. The GitHub repository for this SHAP approach could be accessed [here](https://github.com/shap/shap).
+SHAP values [@lundberg2020local2global], [@shapley1953value] were used here to provide another way to figure out feature importances. The GitHub repository for this SHAP approach could be accessed [here](https://github.com/shap/shap).
 
 SHAP's TreeExplainer() was based on Tree SHAP algorithms [@lundberg2020local2global], and was used to show and explain feature importances within tree models. It could also be extended to boosted tree models such as LightGBM and XGBoost and also other tree models (as explained by the GitHub repository README.md and its documentation link provided). It was also a model-agnostic method, which could be quite handy.
 
