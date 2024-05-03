@@ -61,6 +61,8 @@ import sklearn
 from sklearn.ensemble import RandomForestRegressor
 
 # For imbalanced datasets in regression 
+# May need to set env variable (SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL=True) when installing
+# due to package dependency on older sklearn version
 import ImbalancedLearningRegression as iblr
 
 # Plots
